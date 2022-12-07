@@ -10,4 +10,5 @@ plugins {
 }
 
 subprojects {
-    apply from: "$rootDir/dependencies.gradle"}
+    apply from: "$rootDir/dependencies.gradle"
+}
