@@ -11,7 +11,7 @@ android {
         applicationId "dev.vvasiliev.application"
         minSdk versions.minSdk
         targetSdk versions.targetSdk
-        versionCode 1
+        versionCode versions.versionCode
         versionName versions.appVersionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -78,6 +78,8 @@ android {
     }
 }
 
+
+
 dependencies {
     implementation libraries.core_ktx
     implementation libraries.lifecycle_runtime_ktx
@@ -88,6 +90,7 @@ dependencies {
 
     implementation submodules.structures
     implementation submodules.ui
+    implementation submodules.audio
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'

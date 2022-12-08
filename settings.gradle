@@ -16,3 +16,4 @@ rootProject.name = "Application"
 include ':app'
 include ':structures'
 include ':view'
+include ':audio'
