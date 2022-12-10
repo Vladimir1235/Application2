@@ -17,6 +17,7 @@ class AudioPlaybackServiceImpl(private val exoplayer: SoftReference<ExoPlayer>):
     }
 
     override fun getState(): AudioServiceState {
+        exoplayer.get()?.playbackState
         return AudioServiceState.NOT_CREATED
     }
 

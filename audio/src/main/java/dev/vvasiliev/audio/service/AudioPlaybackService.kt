@@ -3,6 +3,7 @@ package dev.vvasiliev.audio.service
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -28,7 +29,7 @@ class AudioPlaybackService : Service() {
     private val state: MutableState<AudioServiceState> = mutableStateOf(AudioServiceState.NOT_CREATED)
 
     override fun onBind(intent: Intent?): IBinder {
-        exoPlayer = WeakReference(ExoPlayer.Builder(this).build())
+        exoPlayer = WeakReference(ExoPlayer.Builder(this).setLooper(Looper.getMainLooper()!!).build())
         service = WeakReference(AudioPlaybackServiceImpl(SoftReference(exoPlayer!!.get())))
         return service!!.get()!!
     }
