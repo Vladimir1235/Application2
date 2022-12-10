@@ -18,7 +18,7 @@ ext {
             versionCode                   : 1,
             appVersionName                : "$appVer.versionMajor.$appVer.versionMinor.$appVer.versionPatch.$appVer.versionBuild",
             composeUiVersion              : "1.3.1",
-            composeUiToolingPreviewVersion: "1.3.0",
+            composeUiToolingPreviewVersion: "1.2.0",
             exoplayerVersion: "2.18.2"
     ]
 
