@@ -1,47 +1,43 @@
 package dev.vvasiliev.audio.service
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
+import com.google.android.exoplayer2.ExoPlayer
+import dev.vvasiliev.audio.service.notifications.NotificationUtils.buildInitialNotification
+import dev.vvasiliev.audio.service.notifications.NotificationUtils.createNotificationChannel
+import java.lang.ref.SoftReference
+import java.lang.ref.WeakReference
 
-private const val CHANNEL_ID = "MyAppAudioPlaybackServiceChannel"
 
-class AudioPlaybackService: Service() {
+/**
+ * PLAY, STOP, RESUME - is the only things this service can do with music, for now =)
+ *
+ * It's simply represents an interface that's allows to perform commands described above
+ *
+ * As services does simple bunch of things as play,stop, resume, it'll not use DI for now
+ */
+class AudioPlaybackService : Service() {
+
+    private var exoPlayer: WeakReference<ExoPlayer>? = null
+    private var service: WeakReference<AudioPlaybackServiceImpl>? = null
 
     override fun onBind(intent: Intent?): IBinder {
-        return AudioPlaybackServiceImpl()
+        exoPlayer = WeakReference(ExoPlayer.Builder(this).build())
+        service = WeakReference(AudioPlaybackServiceImpl(SoftReference(exoPlayer!!.get())))
+        return service!!.get()!!
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+
         createNotificationChannel()
 
         startForeground(
-            startId,
-            Notification.Builder(this, CHANNEL_ID)
-                .setContentTitle("Service is running")
-                .setContentText("Service was started now")
-                .build()
+            3211,
+            buildInitialNotification(this)
         )
         Log.d(this.packageName, "Service started!")
         return super.onStartCommand(intent, flags, startId)
     }
-
-    private fun createNotificationChannel() {
-        val name = "Notification"
-        val descriptionText = "Audioplayback Notification"
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
-        val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-            description = descriptionText
-        }
-        // Register the channel with the system
-        val notificationManager: NotificationManager =
-            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        return notificationManager.createNotificationChannel(channel)
-    }
-
 }

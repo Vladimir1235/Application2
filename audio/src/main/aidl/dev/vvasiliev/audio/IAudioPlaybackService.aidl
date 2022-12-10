@@ -5,4 +5,6 @@ package dev.vvasiliev.audio;
 
 interface IAudioPlaybackService {
     boolean getServiceState();
+    void stopCurrent();
+    void resumeCurrent();
 }
