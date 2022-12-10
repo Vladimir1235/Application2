@@ -13,7 +13,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 /**
  * Audio service connector, which helps you to easily obtain [IAudioPlaybackService] object in synchronous way
  */
-object AudioServiceConnector : ServiceConnection {
+class AudioServiceConnector constructor(private val context: Context): ServiceConnection {
 
     /**
      * [CancellableContinuation] which falls current thread into a sleep till [IAudioPlaybackService] will be available
@@ -26,13 +26,14 @@ object AudioServiceConnector : ServiceConnection {
     }
 
     override fun onServiceDisconnected(componentName: ComponentName?) {
+        context.unbindService(this)
     }
 
     /**
      * Asynchronously get audio playback service
      * @param context used to build an intent which specifies desired service
      */
-    suspend fun getService(context: Context) =
+    suspend fun getService() =
         suspendCancellableCoroutine { continuation ->
             this.continuation = continuation
             context.bindService(

@@ -4,9 +4,12 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import com.google.android.exoplayer2.ExoPlayer
 import dev.vvasiliev.audio.service.notifications.NotificationUtils.buildInitialNotification
 import dev.vvasiliev.audio.service.notifications.NotificationUtils.createNotificationChannel
+import dev.vvasiliev.audio.service.state.AudioServiceState
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
 
@@ -22,6 +25,7 @@ class AudioPlaybackService : Service() {
 
     private var exoPlayer: WeakReference<ExoPlayer>? = null
     private var service: WeakReference<AudioPlaybackServiceImpl>? = null
+    private val state: MutableState<AudioServiceState> = mutableStateOf(AudioServiceState.NOT_CREATED)
 
     override fun onBind(intent: Intent?): IBinder {
         exoPlayer = WeakReference(ExoPlayer.Builder(this).build())

@@ -1,10 +1,12 @@
 // IAudioPlaybackService.aidl
 package dev.vvasiliev.audio;
 
-// Declare any non-default types here with import statements
+import dev.vvasiliev.audio.AudioServiceState;
 
+// Declare any non-default types here with import statements
 interface IAudioPlaybackService {
-    boolean getServiceState();
+    void play(in Uri uri);
+    AudioServiceState getState();
     void stopCurrent();
     void resumeCurrent();
 }

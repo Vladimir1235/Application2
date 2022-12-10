@@ -1,8 +1,10 @@
 package dev.vvasiliev.application
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -26,6 +28,7 @@ import dev.vvasiliev.view.composable.splash.screen.SplashScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 
 class MainActivity : ComponentActivity() {
 
@@ -38,7 +41,8 @@ class MainActivity : ComponentActivity() {
             Intent(this, AudioPlaybackService::class.java)
         )
         CoroutineScope(Dispatchers.IO).launch {
-            service = AudioServiceConnector.getService(this@MainActivity)
+            service = AudioServiceConnector(this@MainActivity).getService()
+            service?.play(Uri.fromFile(File("")))
         }
         setContent {
             AppTheme {
@@ -54,34 +58,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Greeting(name: String) {
     Column {
-        Text(text = "Hello $name!")
-        Column(
-            Modifier.verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Top
-        ) {
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                item { ImageCard(data = ImageCardModel.mock(), actionModel = {}) }
-                item { Spacer(modifier = Modifier.width(12.dp)) }
-                item { ImageCard(data = ImageCardModel.mock(), actionModel = {}) }
-                item { Spacer(modifier = Modifier.width(12.dp)) }
-                item { ImageCard(data = ImageCardModel.mock(), actionModel = {}) }
-                item { Spacer(modifier = Modifier.width(12.dp)) }
-                item { ImageCard(data = ImageCardModel.mock(), actionModel = {}) }
-            }
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                item { ImageCard(data = ImageCardModel.mock(), actionModel = {}) }
-                item { Spacer(modifier = Modifier.width(12.dp)) }
-                item { ImageCard(data = ImageCardModel.mock(), actionModel = {}) }
-                item { Spacer(modifier = Modifier.width(12.dp)) }
-                item { ImageCard(data = ImageCardModel.mock(), actionModel = {}) }
-                item { Spacer(modifier = Modifier.width(12.dp)) }
-                item { ImageCard(data = ImageCardModel.mock(), actionModel = {}) }
-            }
-        }
+
     }
 }
 
