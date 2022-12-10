@@ -1,4 +1,4 @@
-package dev.vvasiliev.view.composable.shader
+package dev.vvasiliev.view.composable.splash.shader
 
 import org.intellij.lang.annotations.Language
 
@@ -9,7 +9,7 @@ const val SAMPLE_SHADER_BACKGROUND = """
     uniform float2 iResolution;
     
 float f(vec3 p) {
-    p.z -= iTime * 10.;
+    p.z -= iTime / 10.;
     float a = p.z * .1;
     p.xy *= mat2(cos(a), sin(a), -sin(a), cos(a));
     return .1 - length(cos(p.xy) + sin(p.yz));
