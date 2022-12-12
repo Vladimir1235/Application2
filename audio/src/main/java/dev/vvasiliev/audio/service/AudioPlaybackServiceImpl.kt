@@ -9,17 +9,19 @@ import dev.vvasiliev.audio.service.state.AudioServiceState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.ref.SoftReference
 
 class AudioPlaybackServiceImpl(private val exoplayer: SoftReference<ExoPlayer>) :
     IAudioPlaybackService.Stub() {
-    override fun play(uri: Uri?) {
-        uri?.let {
-            CoroutineScope(Dispatchers.Main).launch {
-                exoplayer.get()?.addMediaItem(MediaItem.fromUri(uri))
-                exoplayer.get()?.prepare()
-                resumeCurrent()
-            }
+
+    override fun play(uri: Uri) {
+        val song = MediaItem.fromUri(uri)
+        exoplayer.get()?.run {
+            clearMediaItems()
+            addMediaItem(song)
+            prepare()
+            resumeCurrent()
         }
     }
 
@@ -35,11 +37,11 @@ class AudioPlaybackServiceImpl(private val exoplayer: SoftReference<ExoPlayer>) 
         } ?: AudioServiceState.NOT_CREATED
 
 
-        override fun stopCurrent() {
-            exoplayer.get()?.stop()
-        }
-
-        override fun resumeCurrent() {
-            exoplayer.get()?.play()
-        }
+    override fun stopCurrent() {
+        exoplayer.get()?.stop()
     }
+
+    override fun resumeCurrent() {
+        exoplayer.get()?.play()
+    }
+}

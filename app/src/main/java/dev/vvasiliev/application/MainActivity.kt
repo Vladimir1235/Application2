@@ -27,8 +27,7 @@ import dev.vvasiliev.structures.android.AudioFileCollection
 import dev.vvasiliev.structures.android.UriCollection
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher.create
-import dev.vvasiliev.view.composable.modular.ImageCard
-import dev.vvasiliev.view.composable.modular.ImageCardModel
+import dev.vvasiliev.view.composable.modular.*
 import dev.vvasiliev.view.composable.splash.screen.SplashScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,25 +44,38 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val songs = AudioFileCollection(this@MainActivity).getAllContent()
         startForegroundService(
             Intent(this.application.applicationContext, AudioPlaybackService::class.java)
         )
         CoroutineScope(Dispatchers.IO).launch {
             service = SoftReference(AudioServiceConnector(this@MainActivity).getService())
             service?.get()?.run {
-                if (ReadStoragePermissionLauncher.requestExternalStorage()) {
-                    val song = AudioFileCollection(this@MainActivity).getAllContent().first()
-                    withContext(Dispatchers.Main) {
-                        if (state != AudioServiceState.PLAYING)
-                            play(song.uri)
-                    }
-                }
+                ReadStoragePermissionLauncher.requestExternalStorage()
             }
         }
         setContent {
             AppTheme {
                 // A surface container using the 'background' color from the theme
                 SplashScreen()
+                Column {
+                    songs.forEach { audio ->
+                        MusicCard(
+                            data = MusicCardData(
+                                false,
+                                title = audio.name,
+                                album = audio.album,
+                                author = audio.artist,
+                                duration = ((audio.duration / 1000).toFloat()/60).toString()
+                            ), onStateChanged = { status ->
+                                service?.get()?.run {
+                                    if (status) play(audio.uri) else stopCurrent()
+                                }
+                            }
+                        )
+                    }
+                }
             }
         }
     }

@@ -25,7 +25,8 @@ class AudioFileCollection constructor(private val context: Context) :
         val name: String,
         val artist: String,
         val album: String,
-        val uri: Uri
+        val uri: Uri,
+        val duration: Long
     ) {
         companion object{
             private val ID = "ID"
@@ -55,7 +56,8 @@ class AudioFileCollection constructor(private val context: Context) :
                 name = cursor.getString(ci_title),
                 artist = cursor.getString(ci_artist),
                 uri = ContentUris.withAppendedId(collectionUri, cursor.getLong(ci_id)),
-                album = cursor.getString(ci_album)
+                album = cursor.getString(ci_album),
+                duration = cursor.getLong(ci_duration)
             )
         }
     }
