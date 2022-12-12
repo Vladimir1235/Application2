@@ -17,7 +17,7 @@ import dev.vvasiliev.view.composable.splash.background.ShaderBackgroundScreen
 @Composable
 fun SplashScreen() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-        ShaderBackgroundScreen{
+        ShaderBackgroundScreen {
             SplashScreenContent()
         }
     else BasicBackgroundScreen {
@@ -36,7 +36,10 @@ fun SplashScreenContent() {
         horizontalAlignment = Alignment.Start,
     ) {
         Text(text = "My Player", style = headerStyle)
-        Row(Modifier.fillMaxWidth().padding(top = 24.dp), horizontalArrangement = Arrangement.End) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp), horizontalArrangement = Arrangement.End) {
             Text(text = "Powered by ExoPlayer", style = poweredBlockStyle)
         }
     }

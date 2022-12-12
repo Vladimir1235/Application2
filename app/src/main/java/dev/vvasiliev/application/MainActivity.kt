@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.example.compose.AppTheme
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.AudioPlaybackService
+import dev.vvasiliev.audio.service.state.AudioServiceState
 import dev.vvasiliev.audio.service.util.AudioServiceConnector
 import dev.vvasiliev.structures.android.AudioFileCollection
 import dev.vvasiliev.structures.android.UriCollection
@@ -45,15 +46,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         startForegroundService(
-            Intent(this, AudioPlaybackService::class.java)
+            Intent(this.application.applicationContext, AudioPlaybackService::class.java)
         )
         CoroutineScope(Dispatchers.IO).launch {
             service = SoftReference(AudioServiceConnector(this@MainActivity).getService())
-
-            if (ReadStoragePermissionLauncher.requestExternalStorage()) {
-                val song = AudioFileCollection(this@MainActivity).getAllContent().first()
-                withContext(Dispatchers.Main){
-                    service?.get()?.play(song.uri)
+            service?.get()?.run {
+                if (ReadStoragePermissionLauncher.requestExternalStorage()) {
+                    val song = AudioFileCollection(this@MainActivity).getAllContent().first()
+                    withContext(Dispatchers.Main) {
+                        if (state != AudioServiceState.PLAYING)
+                            play(song.uri)
+                    }
                 }
             }
         }
