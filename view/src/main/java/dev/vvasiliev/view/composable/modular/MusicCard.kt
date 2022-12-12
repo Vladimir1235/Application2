@@ -14,14 +14,18 @@ import androidx.compose.ui.unit.dp
 import dev.vvasiliev.view.composable.primitive.InteractableProgress
 
 @Composable
-fun MusicCard(data: MusicCardData, onStateChanged: (Boolean) -> Unit) {
+fun MusicCard(
+    modifier: Modifier = Modifier,
+    data: MusicCardData,
+    onStateChanged: (Boolean) -> Unit
+) {
 
     var progressState by remember {
         mutableStateOf(0.4f)
     }
 
     val isPlaying by remember { data.playing }
-    Card {
+    Card(modifier = modifier) {
         Column(Modifier.padding(start = 8.dp, top = 8.dp, end = 8.dp)) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
