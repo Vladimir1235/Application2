@@ -21,8 +21,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun InteractableProgress(
     modifier: Modifier = Modifier,
-    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-    foregroundColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    foregroundColor: Color = MaterialTheme.colorScheme.primary,
     progressState: Float,
     onStateChanged: (Float) -> Unit
 ) {
@@ -38,25 +38,29 @@ fun InteractableProgress(
                     strokeWidth = size.height,
                     cap = StrokeCap.Round
                 )
-                if(currentProgress > 0.1f)
-                drawLine(
-                    foregroundColor,
-                    start = Offset(x = 0f, y = size.height / 2),
-                    end = Offset(x = currentProgress, y = size.height / 2),
-                    strokeWidth = size.height,
-                    cap = StrokeCap.Round
-                )
+                if (currentProgress > size.width * 0.01) {
+                    drawLine(
+                        foregroundColor,
+                        start = Offset(x = 0f, y = size.height / 2),
+                        end = Offset(x = currentProgress, y = size.height / 2),
+                        strokeWidth = size.height,
+                        cap = StrokeCap.Round
+                    )
+                }
             }
         }
         .fillMaxWidth()
         .pointerInput(Unit) {
             detectTapGestures { change ->
-                onStateChanged(change.x / size.width)
+                val percent = change.x / size.width
+                    onStateChanged(percent)
             }
         }
-        .pointerInput(Unit){
+        .pointerInput(Unit) {
             detectHorizontalDragGestures { change, _ ->
-                onStateChanged(change.position.x / size.width)
+                val percent = change.position.x / size.width
+                if (percent in 0.0..1.0)
+                    onStateChanged(change.position.x / size.width)
             }
         })
 }

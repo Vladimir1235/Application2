@@ -5,7 +5,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.compose.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -43,7 +47,9 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 // A surface container using the 'background' color from the theme
                 val viewModel: SongsViewModel by viewModels()
-                if (loading) SplashScreen() else SongsScreen(viewModel)
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    if (loading) SplashScreen() else SongsScreen(viewModel)
+                }
             }
         }
     }
