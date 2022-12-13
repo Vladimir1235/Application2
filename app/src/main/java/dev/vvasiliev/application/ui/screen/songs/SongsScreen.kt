@@ -1,13 +1,14 @@
 package dev.vvasiliev.application.ui.screen.songs
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import dev.vvasiliev.audio.IAudioPlaybackService
+import dev.vvasiliev.audio.service.data.EventListener
 import dev.vvasiliev.audio.service.util.AudioServiceConnector
 import dev.vvasiliev.structures.android.AudioFileCollection
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
@@ -22,6 +23,7 @@ import java.lang.ref.SoftReference
 fun SongsScreen() {
     val context = LocalContext.current
     var service: SoftReference<IAudioPlaybackService>? = null
+    fun getService() = service?.get()!!
 
     LaunchedEffect(true) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -32,24 +34,52 @@ fun SongsScreen() {
         }
     }
 
-    val songs = AudioFileCollection(context).getAllContent()
+    val musicData = AudioFileCollection(context).getAllContent().map {
+        MusicCardData(
+            false,
+            title = it.name,
+            album = it.album,
+            author = it.artist,
+            duration = it.duration,
+            id = it.id,
+            uri = it.uri
+        )
+    }
 
-    Column {
-        songs.forEach { audio ->
-            MusicCard(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                data = MusicCardData(
-                    false,
-                    title = audio.name,
-                    album = audio.album,
-                    author = audio.artist,
-                    duration = ((audio.duration / 1000).toFloat() / 60).toString()
-                ), onStateChanged = { status ->
-                    service?.get()?.run {
-                        if (status) play(audio.uri) else stopCurrent()
+    LazyColumn {
+        items(count = musicData.size) { index ->
+            with(musicData[index]) {
+                MusicCard(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    data = this,
+                    onStateChanged = { status ->
+                        getService().run {
+                            when (status) {
+                                true -> {
+                                    val startingPosition = (position.value * duration).toLong()
+                                    play(
+                                        uri, id,
+                                        EventListener(
+                                            onChange = { position -> setPlayingPosition((position.toFloat() / duration)) },
+                                            onPlaybackStopped = { setPlayingStatus(false) }
+                                        ), startingPosition
+                                    )
+                                }
+                                false -> {
+                                    if (isCurrent(id))
+                                        stopCurrent()
+                                }
+                            }
+                        }
+                    },
+                    onPositionChanged = { position ->
+                        if (getService().isCurrent(id)) {
+                            val positionMs = (position * duration).toLong()
+                            getService().seekTo(positionMs)
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
 }

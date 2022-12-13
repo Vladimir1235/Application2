@@ -1,7 +1,10 @@
 package dev.vvasiliev.view.composable.primitive
 
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -35,6 +38,7 @@ fun InteractableProgress(
                     strokeWidth = size.height,
                     cap = StrokeCap.Round
                 )
+                if(currentProgress > 0.1f)
                 drawLine(
                     foregroundColor,
                     start = Offset(x = 0f, y = size.height / 2),
@@ -46,7 +50,12 @@ fun InteractableProgress(
         }
         .fillMaxWidth()
         .pointerInput(Unit) {
-            detectDragGestures { change, dragAmount ->
+            detectTapGestures { change ->
+                onStateChanged(change.x / size.width)
+            }
+        }
+        .pointerInput(Unit){
+            detectHorizontalDragGestures { change, dragAmount ->
                 onStateChanged(change.position.x / size.width)
             }
         })
@@ -62,7 +71,8 @@ fun IntercatableProgressPreview() {
         foregroundColor = Color.Gray,
         backgroundColor = Color.LightGray,
         modifier = Modifier.height(12.dp),
-        progressState = progressState) {
+        progressState = progressState
+    ) {
         progressState = it
     }
 }

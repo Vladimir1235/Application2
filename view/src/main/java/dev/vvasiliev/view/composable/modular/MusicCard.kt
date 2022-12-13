@@ -1,6 +1,7 @@
 package dev.vvasiliev.view.composable.modular
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -17,14 +18,13 @@ import dev.vvasiliev.view.composable.primitive.InteractableProgress
 fun MusicCard(
     modifier: Modifier = Modifier,
     data: MusicCardData,
-    onStateChanged: (Boolean) -> Unit
+    onStateChanged: (Boolean) -> Unit,
+    onPositionChanged: (Float) -> Unit
 ) {
 
-    var progressState by remember {
-        mutableStateOf(0.4f)
-    }
-
+    val progressState by remember { data.position }
     val isPlaying by remember { data.playing }
+
     Card(modifier = modifier) {
         Column(Modifier.padding(start = 8.dp, top = 8.dp, end = 8.dp)) {
             Row(
@@ -32,7 +32,7 @@ fun MusicCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = data.title, style = MaterialTheme.typography.titleMedium)
-                Text(text = data.duration, style = MaterialTheme.typography.labelSmall)
+                Text(text = data.getDurationTime(), style = MaterialTheme.typography.labelSmall)
 
             }
             Text(text = data.author, style = MaterialTheme.typography.bodyMedium)
@@ -41,7 +41,10 @@ fun MusicCard(
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TextButton(
-                    onClick = { onStateChanged(!isPlaying); data.setPlayingStatus(!isPlaying); },
+                    onClick = {
+                        data.setPlayingStatus(!isPlaying)
+                        onStateChanged(isPlaying)
+                    },
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
                     Text(text = if (isPlaying) "Stop" else "Play")
@@ -51,8 +54,9 @@ fun MusicCard(
                         .height(8.dp)
                         .padding(horizontal = 8.dp),
                     progressState = progressState,
-                    onStateChanged = {
-                        progressState = it
+                    onStateChanged = { position ->
+                        data.setPlayingPosition(position)
+                        onPositionChanged(position)
                     })
             }
         }
@@ -63,23 +67,35 @@ fun MusicCard(
 @Preview(uiMode = UI_MODE_NIGHT_YES)
 fun MusicCardPreview() {
     val data = MusicCardData.mock()
-    MusicCard(data = data) {
-        data.setPlayingStatus(it)
-    }
+    MusicCard(
+        data = data,
+        onStateChanged = data::setPlayingStatus,
+        onPositionChanged = data::setPlayingPosition
+    )
 }
 
 class MusicCardData(
     isPlaying: Boolean = false,
     private val _status: MutableState<Boolean> = mutableStateOf(isPlaying),
+    private val _position: MutableState<Float> = mutableStateOf(0f),
     val playing: State<Boolean> = _status,
+    val position: State<Float> = _position,
     val title: String,
     val author: String,
     val album: String,
-    val duration: String
+    val duration: Long,
+    val uri: Uri,
+    val id: Long
 ) {
     fun setPlayingStatus(state: Boolean) {
         _status.value = state
     }
+
+    fun setPlayingPosition(position: Float) {
+        _position.value = position
+    }
+
+    fun getDurationTime() = duration.toString()
 
     companion object {
         fun mock() = MusicCardData(
@@ -87,7 +103,9 @@ class MusicCardData(
             title = "SongTitle",
             author = "Author Name",
             album = "Album title",
-            duration = "4.12"
+            duration = 0,
+            uri = Uri.EMPTY,
+            id = 0
         )
     }
 }

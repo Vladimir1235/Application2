@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -32,14 +31,16 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
+
             var loading by remember { mutableStateOf(true) }
 
             LaunchedEffect(true) {
                 CoroutineScope(Dispatchers.IO).launch {
-                    delay(5000)
+                    delay(2000)
                     loading = false
                 }
             }
+
             AppTheme {
                 // A surface container using the 'background' color from the theme
                 if (loading) SplashScreen() else SongsScreen()
@@ -50,9 +51,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting(name: String) {
-    Column {
-
-    }
+    SplashScreen()
 }
 
 @Preview(showBackground = true)
