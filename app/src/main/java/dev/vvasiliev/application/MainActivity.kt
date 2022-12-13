@@ -4,13 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.activity.viewModels
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.compose.AppTheme
+import dagger.hilt.android.AndroidEntryPoint
 import dev.vvasiliev.application.ui.screen.songs.SongsScreen
+import dev.vvasiliev.application.ui.screen.songs.SongsViewModel
 import dev.vvasiliev.audio.service.AudioPlaybackService
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher.create
 import dev.vvasiliev.view.composable.splash.screen.SplashScreen
@@ -19,8 +19,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
     val launcher = create(this@MainActivity)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,7 +31,6 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-
             var loading by remember { mutableStateOf(true) }
 
             LaunchedEffect(true) {
@@ -43,14 +42,15 @@ class MainActivity : ComponentActivity() {
 
             AppTheme {
                 // A surface container using the 'background' color from the theme
-                if (loading) SplashScreen() else SongsScreen()
+                val viewModel: SongsViewModel by viewModels()
+                if (loading) SplashScreen() else SongsScreen(viewModel)
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String) {
+fun Greeting() {
     SplashScreen()
 }
 
@@ -58,6 +58,6 @@ fun Greeting(name: String) {
 @Composable
 fun DefaultPreview() {
     AppTheme {
-        Greeting("Android")
+        Greeting()
     }
 }

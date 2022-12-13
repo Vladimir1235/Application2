@@ -55,7 +55,7 @@ fun InteractableProgress(
             }
         }
         .pointerInput(Unit){
-            detectHorizontalDragGestures { change, dragAmount ->
+            detectHorizontalDragGestures { change, _ ->
                 onStateChanged(change.position.x / size.width)
             }
         })

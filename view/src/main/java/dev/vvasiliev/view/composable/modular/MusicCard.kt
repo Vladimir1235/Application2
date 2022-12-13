@@ -95,6 +95,10 @@ class MusicCardData(
         _position.value = position
     }
 
+    fun updatePosition(position: Long){
+        setPlayingPosition((position.toFloat() / duration))
+    }
+
     fun getDurationTime() = duration.toString()
 
     companion object {

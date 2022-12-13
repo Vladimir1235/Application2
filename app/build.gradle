@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'com.google.dagger.hilt.android'
 }
 
 android {
@@ -87,6 +89,8 @@ dependencies {
     implementation libraries.compose_ui
     implementation libraries.compose_ui_tooling
     implementation libraries.compose_material
+    implementation libraries.daggerHilt
+    kapt libraries.daggerHiltCompiler
 
     implementation submodules.structures
     implementation submodules.ui
