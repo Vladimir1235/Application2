@@ -11,8 +11,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
+import dev.vvasiliev.application.ui.navigation.Destination
+import dev.vvasiliev.application.ui.navigation.Navigation
 import dev.vvasiliev.application.ui.screen.songs.SongsScreen
 import dev.vvasiliev.application.ui.screen.songs.SongsViewModel
 import dev.vvasiliev.audio.service.AudioPlaybackService
@@ -22,10 +26,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     val launcher = create(this@MainActivity)
+
+    @Inject
+    lateinit var navHost: NavHostController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,10 +53,12 @@ class MainActivity : ComponentActivity() {
             }
 
             AppTheme {
-                // A surface container using the 'background' color from the theme
-                val viewModel: SongsViewModel by viewModels()
+
+                navHost
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    if (loading) SplashScreen() else SongsScreen(viewModel)
+                    val navigation = rememberNavController()
+                    Navigation(controller = navigation)
+                    if (loading) navigation.navigate(Destination.MusicScreen.toString())
                 }
             }
         }

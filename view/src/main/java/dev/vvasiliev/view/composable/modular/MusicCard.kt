@@ -112,8 +112,7 @@ class MusicCardData(
 
         val progress = (position.value * duration).toLong().milliseconds
 
-        var returnValue =
-            if (playing.value)
+        return@toComponents if (playing.value)
                 progress.toComponents { pminutes, pseconds, pnanoseconds ->
                     String.format(
                         inprogressString,
@@ -127,7 +126,6 @@ class MusicCardData(
                 minutes,
                 if (seconds < 10) "0$seconds" else seconds
             )
-        return@toComponents returnValue
     }
 
     companion object {

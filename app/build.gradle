@@ -80,7 +80,9 @@ android {
     }
 }
 
-
+kapt {
+    correctErrorTypes = true
+}
 
 dependencies {
     implementation libraries.core_ktx
@@ -89,7 +91,10 @@ dependencies {
     implementation libraries.compose_ui
     implementation libraries.compose_ui_tooling
     implementation libraries.compose_material
+    implementation libraries.composeNavigation
     implementation libraries.daggerHilt
+    implementation libraries.hiltNavigation
+
     kapt libraries.daggerHiltCompiler
 
     implementation submodules.structures
