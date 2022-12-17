@@ -1,14 +1,11 @@
-package dev.vvasiliev.application.ui.screen.songs
+package dev.vvasiliev.application.screen.songs
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.vvasiliev.application.ui.screen.songs.usecase.GetAudio
+import dev.vvasiliev.application.screen.songs.usecase.GetAudio
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.data.EventListener
 import dev.vvasiliev.audio.service.util.AudioServiceConnector
-import dev.vvasiliev.structures.android.AudioFileCollection
-import dev.vvasiliev.structures.android.UriCollection
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
 import dev.vvasiliev.view.composable.modular.MusicCardData
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@HiltViewModel
 class SongsViewModel
 @Inject constructor(
     private val serviceConnector: AudioServiceConnector,

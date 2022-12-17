@@ -3,13 +3,13 @@ package dev.vvasiliev.audio.service
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
-import android.os.Looper
 import android.util.Log
-import com.google.android.exoplayer2.ExoPlayer
+import dev.vvasiliev.audio.IAudioPlaybackService
+import dev.vvasiliev.audio.service.di.AudioServiceComponent
+import dev.vvasiliev.audio.service.di.DaggerAudioServiceComponent
 import dev.vvasiliev.audio.service.notifications.NotificationUtils.buildInitialNotification
 import dev.vvasiliev.audio.service.notifications.NotificationUtils.createNotificationChannel
-import java.lang.ref.SoftReference
-import java.lang.ref.WeakReference
+import javax.inject.Inject
 
 
 /**
@@ -21,13 +21,21 @@ import java.lang.ref.WeakReference
  */
 class AudioPlaybackService : Service() {
 
-    private var exoPlayer: WeakReference<ExoPlayer>? = null
-    private var service: WeakReference<AudioPlaybackServiceImpl>? = null
+
+    private val serviceComponent: AudioServiceComponent by lazy {
+        DaggerAudioServiceComponent.builder().bindContext(this).build()
+    }
+
+    @Inject
+    lateinit var service: IAudioPlaybackService
+
+    override fun onCreate() {
+        super.onCreate()
+        serviceComponent.injectService(this)
+    }
 
     override fun onBind(intent: Intent?): IBinder {
-        exoPlayer = WeakReference(ExoPlayer.Builder(this).setLooper(Looper.getMainLooper()!!).build())
-        service = WeakReference(AudioPlaybackServiceImpl(SoftReference(exoPlayer!!.get())))
-        return service!!.get()!!
+        return service.asBinder()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

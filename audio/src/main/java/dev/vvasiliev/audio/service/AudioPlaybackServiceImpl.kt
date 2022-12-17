@@ -9,17 +9,17 @@ import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.state.AudioServiceState
 import dev.vvasiliev.audio.service.util.AudioUtils.isEnd
 import kotlinx.coroutines.*
-import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
+import javax.inject.Inject
 
-class AudioPlaybackServiceImpl(private val exoplayer: SoftReference<ExoPlayer>) :
+class AudioPlaybackServiceImpl @Inject constructor(private val exoplayer: ExoPlayer) :
     IAudioPlaybackService.Stub() {
 
     private var localScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     private var listener: WeakReference<AudioEventListener>? = null
 
     override fun play(uri: Uri, id: Long, listener: AudioEventListener, startPosition: Long) {
-        exoplayer.get()?.run {
+        exoplayer.run {
 
             val song = buildSong(uri, id)
 
@@ -44,7 +44,7 @@ class AudioPlaybackServiceImpl(private val exoplayer: SoftReference<ExoPlayer>) 
     }
 
     override fun getState(): AudioServiceState =
-        exoplayer.get()?.playbackState?.let {
+        exoplayer.playbackState.let {
             when (it) {
                 STATE_IDLE -> AudioServiceState.STOPPED
                 STATE_READY -> AudioServiceState.STOPPED
@@ -55,7 +55,7 @@ class AudioPlaybackServiceImpl(private val exoplayer: SoftReference<ExoPlayer>) 
         } ?: AudioServiceState.NOT_CREATED
 
     override fun seekTo(position: Long) {
-        exoplayer.get()?.run {
+        exoplayer.run {
             this.seekTo(position)
         }
     }
@@ -63,15 +63,15 @@ class AudioPlaybackServiceImpl(private val exoplayer: SoftReference<ExoPlayer>) 
     override fun stopCurrent() {
         localScope.cancel()
         listener?.get()?.onPlaybackStopped()
-        exoplayer.get()?.stop()
+        exoplayer.stop()
     }
 
     override fun resumeCurrent() {
-        exoplayer.get()?.play()
+        exoplayer.play()
     }
 
     override fun isCurrent(id: Long): Boolean =
-        exoplayer.get()?.currentMediaItem?.mediaId == id.toString()
+        exoplayer.currentMediaItem?.mediaId == id.toString()
 
     private fun buildSong(uri: Uri, id: Long) = MediaItem.Builder()
         .setUri(uri)
@@ -91,9 +91,9 @@ class AudioPlaybackServiceImpl(private val exoplayer: SoftReference<ExoPlayer>) 
                     var isPlaying: Boolean
                     var duration: Long
                     withContext(Dispatchers.Main) {
-                        position = exoplayer.get()?.currentPosition ?: 0
-                        duration = exoplayer.get()?.duration ?: Long.MAX_VALUE
-                        isPlaying = exoplayer.get()?.isPlaying == true
+                        position = exoplayer.currentPosition
+                        duration = exoplayer.duration
+                        isPlaying = exoplayer.isPlaying
                     }
                     if (isPlaying) {
                         delay(100)

@@ -11,7 +11,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
 
-object ReadStoragePermissionLauncher : ActivityResultCallback<Map<String, Boolean>> {
+object ReadStoragePermissionLauncher :
+    ActivityResultCallback<Map<String, Boolean>> {
 
     private var launcher: WeakReference<ActivityResultLauncher<Array<String>>>? = null
     private var continuation: SoftReference<CancellableContinuation<Boolean>>? = null
@@ -25,7 +26,7 @@ object ReadStoragePermissionLauncher : ActivityResultCallback<Map<String, Boolea
         )
     }
 
-   suspend fun requestExternalStorage() = suspendCancellableCoroutine{
+    suspend fun requestExternalStorage() = suspendCancellableCoroutine {
         this.continuation = SoftReference(it)
         val permissions = mutableListOf(Manifest.permission.READ_EXTERNAL_STORAGE).apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) add("android.permission.READ_MEDIA_AUDIO")
@@ -36,7 +37,7 @@ object ReadStoragePermissionLauncher : ActivityResultCallback<Map<String, Boolea
     }
 
     override fun onActivityResult(result: Map<String, Boolean>?) {
-        continuation?.get()?.resumeWith(Result.success(result?.values?.any{!it}?:false))
+        continuation?.get()?.resumeWith(Result.success(result?.values?.any { !it } ?: false))
         continuation?.clear()
     }
 

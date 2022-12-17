@@ -1,4 +1,4 @@
-package dev.vvasiliev.application.ui.screen.songs.usecase
+package dev.vvasiliev.application.screen.songs.usecase
 
 import dev.vvasiliev.structures.android.AudioFileCollection
 import dev.vvasiliev.structures.android.UriCollection
