@@ -28,7 +28,7 @@ fun SongsScreen(viewModel: SongsViewModel = hiltViewModel()) {
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     data = this,
                     onStateChanged = { status ->
-                        viewModel.onEvent(SongScreenEvent.StateChanged(music[index], status))
+                        viewModel.onEvent(if (status) SongScreenEvent.PlayEvent(music[index]) else SongScreenEvent.StopEvent())
                     },
                     onPositionChanged = { position ->
                         viewModel.onEvent(SongScreenEvent.PositionChanged(music[index], position))

@@ -53,7 +53,7 @@ fun InteractableProgress(
         .pointerInput(Unit) {
             detectTapGestures { change ->
                 val percent = change.x / size.width
-                    onStateChanged(percent)
+                onStateChanged(percent)
             }
         }
         .pointerInput(Unit) {

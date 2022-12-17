@@ -7,6 +7,7 @@ import com.google.android.exoplayer2.Player.*
 import dev.vvasiliev.audio.AudioEventListener
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.state.AudioServiceState
+import dev.vvasiliev.audio.service.util.AudioUtils.isEnd
 import kotlinx.coroutines.*
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
@@ -86,20 +87,29 @@ class AudioPlaybackServiceImpl(private val exoplayer: SoftReference<ExoPlayer>) 
         localScope.launch {
             listener.run {
                 while (listener != null) {
-                    var position: Long?
-                    var isPlaying = false
+                    var position: Long
+                    var isPlaying: Boolean
+                    var duration: Long
                     withContext(Dispatchers.Main) {
-                        position = exoplayer.get()?.currentPosition
+                        position = exoplayer.get()?.currentPosition ?: 0
+                        duration = exoplayer.get()?.duration ?: Long.MAX_VALUE
                         isPlaying = exoplayer.get()?.isPlaying == true
                     }
-                    if (isPlaying)
-                        position?.let {
-                            delay(100)
-                            this?.onPositionChange(it)
-                        }
+                    if (isPlaying) {
+                        delay(100)
+                        onPositionChange(position)
+                        if (position.isEnd(duration)) stopAndSwitchToStart()
+                    }
                 }
                 cancel()
             }
+        }
+    }
+
+    private suspend fun stopAndSwitchToStart() {
+        withContext(Dispatchers.Main) {
+            listener?.get()?.onPositionChange(0)
+            stopCurrent()
         }
     }
 }

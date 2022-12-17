@@ -25,7 +25,7 @@ object ReadStoragePermissionLauncher : ActivityResultCallback<Map<String, Boolea
         )
     }
 
-   suspend fun requestExternalStorage() = suspendCancellableCoroutine<Boolean>{
+   suspend fun requestExternalStorage() = suspendCancellableCoroutine{
         this.continuation = SoftReference(it)
         val permissions = mutableListOf(Manifest.permission.READ_EXTERNAL_STORAGE).apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) add("android.permission.READ_MEDIA_AUDIO")
