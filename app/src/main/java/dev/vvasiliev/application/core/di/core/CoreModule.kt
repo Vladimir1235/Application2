@@ -14,12 +14,4 @@ class CoreModule {
     @Provides
     fun provideServiceConnector(context: Context) =
         AudioServiceConnector(context)
-
-    @Provides
-    fun provideNavigationController(context: Context) =
-        NavHostController(context)
-
-    @Provides
-    fun provideAudioStorageAccessor(context: Context): UriCollection<AudioFileCollection.Audio> =
-        AudioFileCollection(context)
 }
