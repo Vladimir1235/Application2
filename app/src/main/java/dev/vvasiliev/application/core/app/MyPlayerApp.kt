@@ -8,13 +8,17 @@ import timber.log.Timber
 class MyPlayerApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        dagger = DaggerCoreComponent.builder()
-            .includeContext(this).build()
 
+        buildCoreComponent()
         initLogger()
     }
 
-    private fun initLogger(){
+    private fun buildCoreComponent() {
+        dagger = DaggerCoreComponent.builder()
+            .includeContext(this).build()
+    }
+
+    private fun initLogger() {
         Timber.plant(Timber.DebugTree())
     }
 
