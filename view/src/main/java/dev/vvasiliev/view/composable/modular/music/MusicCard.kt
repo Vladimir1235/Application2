@@ -1,10 +1,12 @@
-package dev.vvasiliev.view.composable.modular
+package dev.vvasiliev.view.composable.modular.music
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
-import android.text.format.Formatter
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,24 +15,31 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.vvasiliev.view.R
 import dev.vvasiliev.view.composable.primitive.InteractableProgress
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.toKotlinDuration
 
 @Composable
 fun MusicCard(
     modifier: Modifier = Modifier,
     data: MusicCardData,
     onStateChanged: (Boolean) -> Unit,
-    onPositionChanged: (Float) -> Unit
+    onPositionChanged: (Float) -> Unit,
+    menuItems: MusicDropDownItems? = null
 ) {
-
     val progressState by remember { data.position }
     val isPlaying by remember { data.playing }
 
     Card(modifier = modifier) {
         Column(Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp)) {
-            Text(text = data.title, style = MaterialTheme.typography.titleMedium)
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = data.title,
+                    style = MaterialTheme.typography.titleMedium
+                ); menuItems?.let { MusicDropDownMenu(items = it) }
+            }
             Text(text = data.author, style = MaterialTheme.typography.bodyMedium)
             Text(text = data.album, style = MaterialTheme.typography.bodySmall)
         }
@@ -76,7 +85,8 @@ fun MusicCardPreview() {
     MusicCard(
         data = data,
         onStateChanged = data::setPlayingStatus,
-        onPositionChanged = data::setPlayingPosition
+        onPositionChanged = data::setPlayingPosition,
+        menuItems = MusicDropDownItems.MusicCardDropDownItems()
     )
 }
 
@@ -113,19 +123,19 @@ class MusicCardData(
         val progress = (position.value * duration).toLong().milliseconds
 
         return@toComponents if (playing.value)
-                progress.toComponents { pminutes, pseconds, pnanoseconds ->
-                    String.format(
-                        inprogressString,
-                        pminutes,
-                        if (pseconds < 10) "0$pseconds" else pseconds,
-                        minutes,
-                        if (seconds < 10) "0$seconds" else seconds
-                    )
-                } else String.format(
-                pendingString,
-                minutes,
-                if (seconds < 10) "0$seconds" else seconds
-            )
+            progress.toComponents { pminutes, pseconds, pnanoseconds ->
+                String.format(
+                    inprogressString,
+                    pminutes,
+                    if (pseconds < 10) "0$pseconds" else pseconds,
+                    minutes,
+                    if (seconds < 10) "0$seconds" else seconds
+                )
+            } else String.format(
+            pendingString,
+            minutes,
+            if (seconds < 10) "0$seconds" else seconds
+        )
     }
 
     companion object {
