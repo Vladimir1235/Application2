@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import com.google.common.util.concurrent.ServiceManager
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.AudioPlaybackService
 import kotlinx.coroutines.CancellableContinuation
@@ -39,7 +40,7 @@ class AudioServiceConnector constructor(private val context: Context): ServiceCo
             context.bindService(
                 Intent(context, AudioPlaybackService::class.java),
                 this,
-                Context.BIND_EXTERNAL_SERVICE
+                Context.BIND_AUTO_CREATE
             )
         }
 }

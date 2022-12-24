@@ -12,7 +12,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
 import dev.vvasiliev.application.core.app.MyPlayerApp
-import dev.vvasiliev.application.screen.navigation.Destination
 import dev.vvasiliev.application.screen.navigation.Navigator
 import dev.vvasiliev.audio.service.AudioPlaybackService
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher.create
@@ -29,9 +28,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        //Inject This activity into dependency graph
-        MyPlayerApp.dagger.mainActivityModule.injectMainActivity(this)
-
         startForegroundService(
             Intent(this.application.applicationContext, AudioPlaybackService::class.java)
         )
@@ -39,8 +35,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    navigator.Navigation(controller = rememberNavController())
-                    navigator.navHostController.navigate(Destination.MusicScreen.toString())
+                    //Inject This activity into dependency graph
+                    MyPlayerApp.dagger.mainActivityModule.bindNavController(rememberNavController())
+                        .build().injectMainActivity(this)
+                    navigator.Navigation()
                 }
             }
         }

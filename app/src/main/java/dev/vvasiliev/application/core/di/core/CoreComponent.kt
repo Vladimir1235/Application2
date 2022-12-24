@@ -10,7 +10,7 @@ import javax.inject.Singleton
 @Component(modules = [CoreModule::class])
 interface CoreComponent {
 
-    val mainActivityModule: MainActivitySubComponent
+    val mainActivityModule: MainActivitySubComponent.Builder
 
     @Component.Builder
     interface CoreComponentBuilder {

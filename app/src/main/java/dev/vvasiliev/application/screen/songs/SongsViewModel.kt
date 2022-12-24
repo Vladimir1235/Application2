@@ -1,7 +1,10 @@
 package dev.vvasiliev.application.screen.songs
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
+import dev.vvasiliev.application.screen.navigation.Destination
 import dev.vvasiliev.application.screen.songs.usecase.GetAudio
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.data.EventListener
@@ -15,8 +18,10 @@ import javax.inject.Inject
 
 class SongsViewModel
 @Inject constructor(
+    private val context: Context,
     private val serviceConnector: AudioServiceConnector,
     private val getAudio: GetAudio,
+    private val navHostController: NavHostController
 ) : ViewModel() {
 
     private val _musicList: MutableStateFlow<MutableList<MusicCardData>> =
@@ -27,7 +32,7 @@ class SongsViewModel
 
     suspend fun onCreate() {
         viewModelScope.launch {
-            if (ReadStoragePermissionLauncher.requestExternalStorage()) {
+            if (ReadStoragePermissionLauncher.requestExternalStorage(context)) {
                 service = serviceConnector.getService()
                 fetchSongs()
             }
@@ -61,6 +66,9 @@ class SongsViewModel
                     service?.seekTo(positionMs)
                 }
             }
+            is SongScreenEvent.CardClickEvent -> {
+                navHostController.navigate(Destination.MusicDetailedScreen(id = event.id).applyId())
+            }
         }
     }
 
@@ -71,6 +79,7 @@ class SongsViewModel
 sealed class SongScreenEvent {
     class PlayEvent(val musicCardData: MusicCardData) : SongScreenEvent()
     class StopEvent : SongScreenEvent()
+    class CardClickEvent(val id: Long) : SongScreenEvent()
     class PositionChanged(val musicCardData: MusicCardData, val position: Float) :
         SongScreenEvent()
 }
