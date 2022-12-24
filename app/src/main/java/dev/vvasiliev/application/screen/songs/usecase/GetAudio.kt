@@ -2,7 +2,7 @@ package dev.vvasiliev.application.screen.songs.usecase
 
 import dev.vvasiliev.structures.android.AudioFileCollection
 import dev.vvasiliev.structures.android.UriCollection
-import dev.vvasiliev.view.composable.modular.MusicCardData
+import dev.vvasiliev.view.composable.modular.music.MusicCardData
 import javax.inject.Inject
 
 class GetAudio @Inject constructor(
@@ -20,5 +20,4 @@ class GetAudio @Inject constructor(
                 uri = it.uri
             )
         }.toMutableList()
-
 }

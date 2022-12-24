@@ -7,7 +7,7 @@ import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.data.EventListener
 import dev.vvasiliev.audio.service.util.AudioServiceConnector
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
-import dev.vvasiliev.view.composable.modular.MusicCardData
+import dev.vvasiliev.view.composable.modular.music.MusicCardData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
