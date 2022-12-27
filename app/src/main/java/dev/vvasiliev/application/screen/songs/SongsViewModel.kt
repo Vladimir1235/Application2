@@ -1,9 +1,12 @@
 package dev.vvasiliev.application.screen.songs
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import dev.vvasiliev.application.exception.ServiceException
+import dev.vvasiliev.application.exception.ServiceNotBoundException
 import dev.vvasiliev.application.screen.navigation.Destination
 import dev.vvasiliev.application.screen.songs.usecase.GetAudio
 import dev.vvasiliev.audio.IAudioPlaybackService
@@ -44,31 +47,40 @@ class SongsViewModel
     }
 
     fun onEvent(event: SongScreenEvent) {
-        when (event) {
-            is SongScreenEvent.PlayEvent -> with(event.musicCardData) {
-                val startingPosition = calculateSeekToValue(position.value)
-                service?.play(
-                    uri, id,
-                    EventListener(
-                        onChange = { position -> updatePosition(position) },
-                        onPlaybackStopped = { setPlayingStatus(false) }
-                    ), startingPosition
-                )
-            }
+        try {
+            when (event) {
+                is SongScreenEvent.PlayEvent -> with(event.musicCardData) {
+                    val startingPosition = calculateSeekToValue(position.value)
+                    service?.play(
+                        uri, id,
+                        EventListener(
+                            onChange = { position -> updatePosition(position) },
+                            onPlaybackStopped = { setPlayingStatus(false) }
+                        ), startingPosition
+                    )
+                        ?: throw ServiceNotBoundException(serviceClass = IAudioPlaybackService::class.java)
+                }
 
-            is SongScreenEvent.StopEvent -> {
-                service?.stopCurrent()
-            }
+                is SongScreenEvent.StopEvent -> {
+                    service?.stopCurrent()
+                        ?: throw ServiceNotBoundException(serviceClass = IAudioPlaybackService::class.java)
+                }
 
-            is SongScreenEvent.PositionChanged -> with(event.musicCardData) {
-                if (isCurrent()) {
-                    val positionMs = calculateSeekToValue(event.position)
-                    service?.seekTo(positionMs)
+                is SongScreenEvent.PositionChanged -> with(event.musicCardData) {
+                    if (isCurrent()) {
+                        val positionMs = calculateSeekToValue(event.position)
+                        service?.seekTo(positionMs)
+                            ?: throw ServiceNotBoundException(serviceClass = IAudioPlaybackService::class.java)
+                    }
+                }
+                is SongScreenEvent.CardClickEvent -> {
+                    navHostController.navigate(
+                        Destination.MusicDetailedScreen(id = event.id).applyId()
+                    )
                 }
             }
-            is SongScreenEvent.CardClickEvent -> {
-                navHostController.navigate(Destination.MusicDetailedScreen(id = event.id).applyId())
-            }
+        } catch (exception: ServiceException) {
+            Toast.makeText(context, exception.message, Toast.LENGTH_SHORT)
         }
     }
 
