@@ -13,6 +13,9 @@ import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
+
+private const val REFRESH_RATE = 500L
+
 class AudioPlaybackServiceImpl @Inject constructor(private val exoplayer: ExoPlayer) :
     IAudioPlaybackService.Stub() {
 
@@ -106,7 +109,7 @@ class AudioPlaybackServiceImpl @Inject constructor(private val exoplayer: ExoPla
                             stopAndSwitchToStart()
                         }
                     }
-                    delay(100)
+                    delay(REFRESH_RATE)
                 }
                 cancel()
             }
