@@ -1,6 +1,7 @@
 package dev.vvasiliev.audio.service
 
 import android.net.Uri
+import android.util.Log
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player.*
@@ -26,8 +27,10 @@ class AudioPlaybackServiceImpl @Inject constructor(private val exoplayer: ExoPla
             val isCurrent = song.isCurrent(this)
 
             if (!isCurrent) {
-                stopCurrent()
-                clearMediaItems()
+                if (mediaItemCount > 0) {
+                    stopCurrent()
+                    clearMediaItems()
+                }
                 addMediaItem(song)
                 seekTo(startPosition)
             }
@@ -52,7 +55,7 @@ class AudioPlaybackServiceImpl @Inject constructor(private val exoplayer: ExoPla
                 STATE_ENDED -> AudioServiceState.STOPPED
                 else -> AudioServiceState.NOT_CREATED
             }
-        } ?: AudioServiceState.NOT_CREATED
+        }
 
     override fun seekTo(position: Long) {
         exoplayer.run {
@@ -62,6 +65,7 @@ class AudioPlaybackServiceImpl @Inject constructor(private val exoplayer: ExoPla
 
     override fun stopCurrent() {
         localScope.cancel()
+        localScope = CoroutineScope(Dispatchers.IO)
         listener?.get()?.onPlaybackStopped()
         exoplayer.stop()
     }
@@ -96,10 +100,13 @@ class AudioPlaybackServiceImpl @Inject constructor(private val exoplayer: ExoPla
                         isPlaying = exoplayer.isPlaying
                     }
                     if (isPlaying) {
-                        delay(100)
                         onPositionChange(position)
-                        if (position.isEnd(duration)) stopAndSwitchToStart()
+                        Log.d("Player", "Position changed")
+                        if (position.isEnd(duration)) {
+                            stopAndSwitchToStart()
+                        }
                     }
+                    delay(100)
                 }
                 cancel()
             }
@@ -108,6 +115,7 @@ class AudioPlaybackServiceImpl @Inject constructor(private val exoplayer: ExoPla
 
     private suspend fun stopAndSwitchToStart() {
         withContext(Dispatchers.Main) {
+            exoplayer.clearMediaItems()
             listener?.get()?.onPositionChange(0)
             stopCurrent()
         }
