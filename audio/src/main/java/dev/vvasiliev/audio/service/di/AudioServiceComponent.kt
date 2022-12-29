@@ -5,7 +5,7 @@ import dagger.BindsInstance
 import dagger.Component
 import dev.vvasiliev.audio.service.AudioPlaybackService
 
-@Component(modules = [AudioServiceModule::class])
+@Component(modules = [AudioServiceModule::class, BindsModule::class])
 @AudioServiceScope
 interface AudioServiceComponent {
     fun injectService(audioPlaybackService: AudioPlaybackService)

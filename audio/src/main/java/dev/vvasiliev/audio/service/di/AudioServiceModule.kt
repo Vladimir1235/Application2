@@ -9,6 +9,8 @@ import dagger.Module
 import dagger.Provides
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.AudioPlaybackServiceImpl
+import dev.vvasiliev.audio.service.util.PlayerUsage
+import dev.vvasiliev.audio.service.util.PlayerUsecase
 import dev.vvasiliev.audio.service.util.ServiceSpecificThreadExecutor
 import java.util.concurrent.atomic.AtomicReference
 

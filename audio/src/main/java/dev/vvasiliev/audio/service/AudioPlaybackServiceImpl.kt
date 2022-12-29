@@ -7,8 +7,10 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player.*
 import dev.vvasiliev.audio.AudioEventListener
 import dev.vvasiliev.audio.IAudioPlaybackService
+import dev.vvasiliev.audio.service.data.EventListener
 import dev.vvasiliev.audio.service.state.AudioServiceState
 import dev.vvasiliev.audio.service.util.AudioUtils.isEnd
+import dev.vvasiliev.audio.service.util.PlayerUsecase
 import dev.vvasiliev.audio.service.util.ServiceSpecificThreadExecutor
 import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
@@ -17,11 +19,8 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 
-
-private const val REFRESH_RATE = 500L
-
 class AudioPlaybackServiceImpl @Inject constructor(
-    private val exoplayer: ExoPlayer,
+    private val player: PlayerUsecase,
     private val executor: ServiceSpecificThreadExecutor
 ) : IAudioPlaybackService.Stub() {
 
@@ -32,29 +31,23 @@ class AudioPlaybackServiceImpl @Inject constructor(
         executor.execute {
             val song = buildSong(uri, id)
 
-            val isCurrent = song.isCurrent(exoplayer)
+            val isCurrent = player.isCurrent(song)
 
             if (!isCurrent) {
-                if (exoplayer.mediaItemCount > 0) {
+                if (player.isPlaying()) {
                     stopCurrent()
-                    exoplayer.clearMediaItems()
                 }
-                exoplayer.addMediaItem(song)
-                seekTo(startPosition)
+                player.setCurrent(song)
+                player.switchTo(startPosition)
             }
 
-            exoplayer.prepare()
-
-            if (isCurrent) {
-                seekTo(exoplayer.currentPosition)
-            }
             updateCurrentPosition(listener)
-            resumeCurrent()
+            player.play()
         }
     }
 
     override fun getState(): AudioServiceState =
-        exoplayer.playbackState.let {
+        player.getState().let {
             when (it) {
                 STATE_IDLE -> AudioServiceState.STOPPED
                 STATE_READY -> AudioServiceState.STOPPED
@@ -66,25 +59,26 @@ class AudioPlaybackServiceImpl @Inject constructor(
 
     override fun seekTo(position: Long) {
         executor.execute {
-            exoplayer.seekTo(position)
+            player.switchTo(position)
         }
     }
 
     override fun stopCurrent() {
         executor.execute {
+            player.cancelPositionUpdates()
             localScope.cancel()
             localScope = CoroutineScope(Dispatchers.IO)
             listener?.get()?.onPlaybackStopped()
-            exoplayer.stop()
+            player.stop()
         }
     }
 
     override fun resumeCurrent() {
-        exoplayer.play()
+        player.play()
     }
 
     override fun isCurrent(id: Long): Boolean =
-        executor.executeBlocking { exoplayer.currentMediaItem?.mediaId == id.toString() }
+        executor.executeBlocking { player.isCurrent(id) }
 
 
     private fun buildSong(uri: Uri, id: Long) = MediaItem.Builder()
@@ -92,42 +86,10 @@ class AudioPlaybackServiceImpl @Inject constructor(
         .setMediaId(id.toString())
         .build()
 
-    private fun MediaItem.isCurrent(exoPlayer: ExoPlayer) =
-        exoPlayer.currentMediaItem?.mediaId == mediaId
-
-
     private fun updateCurrentPosition(listener: AudioEventListener) {
-        localScope = CoroutineScope(Dispatchers.IO)
-        this.listener = WeakReference(listener)
-        localScope.launch {
-            listener.run {
-                while (listener != null) {
-                    var position: Long = 1
-                    var isPlaying: Boolean = false
-                    var duration: Long = 2
-                    executor.executeBlocking {
-                        position = exoplayer.currentPosition
-                        duration = exoplayer.duration
-                        isPlaying = exoplayer.isPlaying
-                    }
-
-                    if (isPlaying) {
-                        onPositionChange(position)
-                        Log.d("Player", "Position changed")
-                        if (position.isEnd(duration)) {
-                            stopAndSwitchToStart()
-                        }
-                    }
-                    delay(REFRESH_RATE)
-                }
-                cancel()
-            }
+        CoroutineScope(Dispatchers.IO).launch {
+            player.requestPositionUpdates()
+            player.subscribeOnPositionChange(listener)
         }
-    }
-
-    private suspend fun stopAndSwitchToStart() {
-        exoplayer.clearMediaItems()
-        listener?.get()?.onPositionChange(0)
-        stopCurrent()
     }
 }
