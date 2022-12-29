@@ -33,7 +33,8 @@
                 android:value="" />
         </activity>
         
-        <service android:name="dev.vvasiliev.audio.service.AudioPlaybackService"/>
+        <service android:process=":audio"
+            android:name="dev.vvasiliev.audio.service.AudioPlaybackService"/>
     </application>
 
 </manifest>

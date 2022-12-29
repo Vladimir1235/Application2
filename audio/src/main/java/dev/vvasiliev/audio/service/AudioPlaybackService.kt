@@ -9,6 +9,8 @@ import dev.vvasiliev.audio.service.di.AudioServiceComponent
 import dev.vvasiliev.audio.service.di.DaggerAudioServiceComponent
 import dev.vvasiliev.audio.service.notifications.NotificationUtils.buildInitialNotification
 import dev.vvasiliev.audio.service.notifications.NotificationUtils.createNotificationChannel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 
