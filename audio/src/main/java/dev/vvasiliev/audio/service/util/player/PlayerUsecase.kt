@@ -1,21 +1,14 @@
-package dev.vvasiliev.audio.service.util
+package dev.vvasiliev.audio.service.util.player
 
 import android.media.session.PlaybackState
-import android.util.Log
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import dev.vvasiliev.audio.AudioEventListener
 import dev.vvasiliev.audio.service.data.EndOfPlayListException
 import dev.vvasiliev.audio.service.data.Playlist
 import dev.vvasiliev.audio.service.data.StartOfPlayListException
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.receiveAsFlow
+import dev.vvasiliev.audio.service.util.player.updater.PlayerProgressUpdate
+import dev.vvasiliev.audio.service.util.player.updater.PlayerProgressUpdateFactory
 import javax.inject.Inject
 
 interface PlayerUsecase {
@@ -29,81 +22,81 @@ interface PlayerUsecase {
     fun isPlaying(): Boolean
     fun getState(): Int
     suspend fun subscribeOnPositionChange(eventListener: AudioEventListener)
+    suspend fun unsubscribeOnPositionChange(eventListener: AudioEventListener)
     fun requestPositionUpdates()
     fun cancelPositionUpdates()
 
     //Actions
     fun play()
+    fun resume()
     fun stop()
     fun switchTo(position: Long)
     fun playNext()
     fun playPrevious()
 }
 
-private const val UPDATE_INTERVAL = 150L
 
 class PlayerUsage @Inject constructor(
     private val player: ExoPlayer,
-    private val executor: ServiceSpecificThreadExecutor
+    private val specificThreadExecutor: ServiceSpecificThreadExecutor,
+    private val updaterFactory: PlayerProgressUpdateFactory
 ) : PlayerUsecase {
-    var currentItem: MediaItem? = null
+
+    private val listeners: MutableMap<MediaItem, PlayerProgressUpdate> = mutableMapOf()
+
     private val playList: Playlist.AudioPlaylist? = null
-    private val positionUpdateChannel = Channel<Long>()
-    private var updatesRequired: Boolean = false
 
     override fun setCurrent(mediaItem: MediaItem) {
-        currentItem = mediaItem
-        player.setMediaItem(currentItem!!)
+        player.setMediaItem(mediaItem)
         player.prepare()
     }
 
     override fun isCurrent(mediaItem: MediaItem): Boolean =
         isCurrent(mediaItem.mediaId.toLong())
 
-
     /**
      * @return true if [id] is id of [currentItem] and false if not or if [currentItem] is null
      */
     override fun isCurrent(id: Long): Boolean {
-        return currentItem?.let { currentItem ->
+        return player.currentMediaItem?.let { currentItem ->
             currentItem.mediaId.toLong() == id
         } ?: false
     }
 
-    override fun hasCurrent(): Boolean = currentItem != null
+    override fun hasCurrent(): Boolean = player.currentMediaItem != null
 
     override fun isPlaying(): Boolean = player.playbackState == PlaybackState.STATE_PLAYING
 
     override fun getState(): Int = player.playbackState
 
-    /**
-     * Subscribe on [positionUpdateChannel] to get actual playback position values
-     */
     override suspend fun subscribeOnPositionChange(eventListener: AudioEventListener) {
-        positionUpdateChannel.receiveAsFlow().collect(eventListener::onPositionChange)
-//        eventListener.onPositionChange(positionUpdateChannel.receive())
+        val updater = updaterFactory.create(getCurrentMedia())
+        listeners[getCurrentMedia()] = updater
+        updater.subscribeOnUpdates(eventListener)
+    }
+
+    override suspend fun unsubscribeOnPositionChange(eventListener: AudioEventListener) {
+        listeners[getCurrentMedia()]?.unsubscribeOnUpdates(eventListener)
     }
 
     override fun requestPositionUpdates() {
-        updatesRequired = true
-        CoroutineScope(Dispatchers.IO).launch {
-            while (updatesRequired) {
-                positionUpdateChannel.send(executor.executeBlocking { player.currentPosition })
-                delay(UPDATE_INTERVAL)
-            }
-        }
+        listeners[getCurrentMedia()]?.requestUpdates()
     }
 
     override fun cancelPositionUpdates() {
-        updatesRequired = false
+        listeners[getCurrentMedia()]?.cancelUpdates()
     }
-
 
     /**
      * Plays [currentItem]
      */
     override fun play() {
         player.play()
+    }
+
+    override fun resume() {
+        player.prepare()
+        play()
     }
 
     /**
@@ -129,7 +122,7 @@ class PlayerUsage @Inject constructor(
     @Throws(EndOfPlayListException::class, EmptyPlaylistException::class)
     override fun playNext() {
         val next = playList?.run {
-            currentItem?.pickNext()
+            getCurrentMedia().pickNext()
         } ?: throw EmptyPlaylistException(playList?.title ?: "isn't initialized and")
         setCurrent(next)
     }
@@ -143,10 +136,15 @@ class PlayerUsage @Inject constructor(
     @Throws(StartOfPlayListException::class, EmptyPlaylistException::class)
     override fun playPrevious() {
         val previous = playList?.run {
-            currentItem?.pickPrevious()
+            getCurrentMedia().pickPrevious()
         } ?: throw EmptyPlaylistException(playList?.title ?: "isn't initialized and")
         setCurrent(previous)
     }
+
+    private fun getCurrentMedia() =
+        specificThreadExecutor.executeBlocking {
+            player.currentMediaItem
+        } ?: throw EmptyPlaylistException("standard query")
 }
 
 open class PlayerUsecaseException(override val message: String) : Exception(message)

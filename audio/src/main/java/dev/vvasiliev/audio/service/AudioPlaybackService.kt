@@ -2,15 +2,19 @@ package dev.vvasiliev.audio.service
 
 import android.app.Service
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.IBinder
 import android.util.Log
+import dev.vvasiliev.audio.BuildConfig
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.di.AudioServiceComponent
 import dev.vvasiliev.audio.service.di.DaggerAudioServiceComponent
+import dev.vvasiliev.audio.service.notifications.NotificationUtils.FOREGROUND_CHANNEL_ID
 import dev.vvasiliev.audio.service.notifications.NotificationUtils.buildInitialNotification
 import dev.vvasiliev.audio.service.notifications.NotificationUtils.createNotificationChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -23,7 +27,6 @@ import javax.inject.Inject
  */
 class AudioPlaybackService : Service() {
 
-
     private val serviceComponent: AudioServiceComponent by lazy {
         DaggerAudioServiceComponent.builder().bindContext(this).build()
     }
@@ -33,6 +36,7 @@ class AudioPlaybackService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        initTimber()
         serviceComponent.injectService(this)
     }
 
@@ -45,10 +49,17 @@ class AudioPlaybackService : Service() {
         createNotificationChannel()
 
         startForeground(
-            3211,
+            FOREGROUND_CHANNEL_ID,
             buildInitialNotification(this)
         )
-        Log.d(this.packageName, "Service started!")
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun initTimber() {
+        if (BuildConfig.LOG_ENABLED) {
+            if(Timber.treeCount < 1){
+                Timber.plant(Timber.DebugTree())
+            }
+        }
     }
 }

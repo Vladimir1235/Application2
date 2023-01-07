@@ -1,31 +1,25 @@
 package dev.vvasiliev.audio.service
 
 import android.net.Uri
-import android.util.Log
-import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player.*
+import com.google.android.exoplayer2.Player.STATE_IDLE
+import com.google.android.exoplayer2.Player.STATE_READY
+import com.google.android.exoplayer2.Player.STATE_BUFFERING
+import com.google.android.exoplayer2.Player.STATE_ENDED
 import dev.vvasiliev.audio.AudioEventListener
 import dev.vvasiliev.audio.IAudioPlaybackService
-import dev.vvasiliev.audio.service.data.EventListener
 import dev.vvasiliev.audio.service.state.AudioServiceState
-import dev.vvasiliev.audio.service.util.AudioUtils.isEnd
-import dev.vvasiliev.audio.service.util.PlayerUsecase
-import dev.vvasiliev.audio.service.util.ServiceSpecificThreadExecutor
-import kotlinx.coroutines.*
-import java.lang.ref.WeakReference
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
+import dev.vvasiliev.audio.service.util.player.PlayerUsecase
+import dev.vvasiliev.audio.service.util.player.ServiceSpecificThreadExecutor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class AudioPlaybackServiceImpl @Inject constructor(
     private val player: PlayerUsecase,
     private val executor: ServiceSpecificThreadExecutor
 ) : IAudioPlaybackService.Stub() {
-
-    private var localScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
-    private var listener: WeakReference<AudioEventListener>? = null
 
     override fun play(uri: Uri, id: Long, listener: AudioEventListener, startPosition: Long) {
         executor.execute {
@@ -42,7 +36,7 @@ class AudioPlaybackServiceImpl @Inject constructor(
             }
 
             updateCurrentPosition(listener)
-            player.play()
+            player.resume()
         }
     }
 
@@ -64,11 +58,8 @@ class AudioPlaybackServiceImpl @Inject constructor(
     }
 
     override fun stopCurrent() {
-        executor.execute {
+        executor.executeBlocking {
             player.cancelPositionUpdates()
-            localScope.cancel()
-            localScope = CoroutineScope(Dispatchers.IO)
-            listener?.get()?.onPlaybackStopped()
             player.stop()
         }
     }
@@ -80,7 +71,6 @@ class AudioPlaybackServiceImpl @Inject constructor(
     override fun isCurrent(id: Long): Boolean =
         executor.executeBlocking { player.isCurrent(id) }
 
-
     private fun buildSong(uri: Uri, id: Long) = MediaItem.Builder()
         .setUri(uri)
         .setMediaId(id.toString())
@@ -88,8 +78,8 @@ class AudioPlaybackServiceImpl @Inject constructor(
 
     private fun updateCurrentPosition(listener: AudioEventListener) {
         CoroutineScope(Dispatchers.IO).launch {
-            player.requestPositionUpdates()
             player.subscribeOnPositionChange(listener)
+            player.requestPositionUpdates()
         }
     }
 }

@@ -8,6 +8,7 @@ import android.content.Context
 
 object NotificationUtils {
     private const val CHANNEL_ID = "MyAppAudioPlaybackServiceChannel"
+    const val FOREGROUND_CHANNEL_ID = 3311
 
     fun buildInitialNotification(context: Context) =
         Notification.Builder(context, CHANNEL_ID)

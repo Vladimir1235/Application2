@@ -4,15 +4,11 @@ import android.content.Context
 import android.os.HandlerThread
 import android.os.Looper
 import com.google.android.exoplayer2.ExoPlayer
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.AudioPlaybackServiceImpl
-import dev.vvasiliev.audio.service.util.PlayerUsage
-import dev.vvasiliev.audio.service.util.PlayerUsecase
-import dev.vvasiliev.audio.service.util.ServiceSpecificThreadExecutor
-import java.util.concurrent.atomic.AtomicReference
+import dev.vvasiliev.audio.service.util.player.ServiceSpecificThreadExecutor
 
 @Module
 class AudioServiceModule {
@@ -34,7 +30,5 @@ class AudioServiceModule {
     @Provides
     @AudioServiceScope
     fun provideExoPlayer(context: Context, looper: Looper) =
-        ExoPlayer.Builder(context)
-            .setLooper(looper)
-            .build()
+        ExoPlayer.Builder(context).setLooper(looper).build()
 }
