@@ -7,6 +7,7 @@ import dagger.assisted.AssistedInject
 import dev.vvasiliev.audio.AudioEventListener
 import dev.vvasiliev.audio.service.util.player.ServiceSpecificThreadExecutor
 import kotlinx.coroutines.*
+import kotlin.reflect.KFunction
 
 private const val UPDATE_INTERVAL = 150L
 
@@ -19,7 +20,8 @@ private const val UPDATE_INTERVAL = 150L
 class PlayerProgressUpdate @AssistedInject constructor(
     private val executor: ServiceSpecificThreadExecutor,
     private val player: ExoPlayer,
-    @Assisted mediaItem: MediaItem
+    @Assisted private val mediaItem: MediaItem,
+    @Assisted private val onCompositionEnd: () -> Unit
 ) {
     /**
      * Subscribers are combined into [listeners] where [Pair.first] is [listener][AudioEventListener] and [Pair.second] is [Job]
@@ -66,10 +68,19 @@ class PlayerProgressUpdate @AssistedInject constructor(
             while (true) {
                 listener.first.onPositionChange(executor.executeBlocking {
                     val position = player.currentPosition;
+
+                    player.ifEnded(position) {
+                        onCompositionEnd()
+                    }
+
                     position
                 })
                 delay(UPDATE_INTERVAL)
             }
         }
     }
+
+
+    private fun ExoPlayer.ifEnded(position: Long, block: () -> Unit) =
+        if (duration in 0..position) block() else Unit
 }

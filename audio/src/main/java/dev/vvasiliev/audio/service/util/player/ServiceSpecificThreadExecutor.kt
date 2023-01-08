@@ -16,7 +16,7 @@ class ServiceSpecificThreadExecutor
     private val looper: Looper
 ) {
     private val handler = Handler(looper).asCoroutineDispatcher()
-    val looperId = looper.thread.id
+
     /**
      * Runs [task] asynchronously
      */

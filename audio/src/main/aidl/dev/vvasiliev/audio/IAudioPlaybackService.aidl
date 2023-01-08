@@ -10,6 +10,5 @@ interface IAudioPlaybackService {
     AudioServiceState getState();
     void seekTo(long position);
     void stopCurrent();
-    void resumeCurrent();
-    boolean isCurrent(long id);
+    long getCurrentSongId();
 }

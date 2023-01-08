@@ -32,7 +32,10 @@ fun SongsScreen(viewModel: SongsViewModel = viewModel()) {
                         },
                     data = this,
                     onStateChanged = { status ->
-                        viewModel.onEvent(if (status) SongScreenEvent.PlayEvent(music[index]) else SongScreenEvent.StopEvent())
+                        viewModel.onEvent(
+                            if (status) SongScreenEvent.PlayEvent(music[index])
+                            else SongScreenEvent.StopEvent()
+                        )
                     },
                     onPositionChanged = { position ->
                         viewModel.onEvent(SongScreenEvent.PositionChanged(music[index], position))

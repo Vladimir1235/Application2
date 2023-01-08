@@ -16,6 +16,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+const val ID_UNSPECIFIED: Long = -1
+
 class AudioPlaybackServiceImpl @Inject constructor(
     private val player: PlayerUsecase,
     private val executor: ServiceSpecificThreadExecutor
@@ -64,12 +66,7 @@ class AudioPlaybackServiceImpl @Inject constructor(
         }
     }
 
-    override fun resumeCurrent() {
-        player.play()
-    }
-
-    override fun isCurrent(id: Long): Boolean =
-        executor.executeBlocking { player.isCurrent(id) }
+    override fun getCurrentSongId(): Long = player.getCurrentSongId() ?: ID_UNSPECIFIED
 
     private fun buildSong(uri: Uri, id: Long) = MediaItem.Builder()
         .setUri(uri)

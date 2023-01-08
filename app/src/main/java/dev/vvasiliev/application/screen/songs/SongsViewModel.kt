@@ -67,7 +67,9 @@ class SongsViewModel
                 }
 
                 is SongScreenEvent.PositionChanged -> with(event.musicCardData) {
-                    if (isCurrent()) {
+                    val isCurrentSong = event.musicCardData.id == service?.currentSongId
+
+                    if (isCurrentSong) {
                         val positionMs = calculateSeekToValue(event.position)
                         service?.seekTo(positionMs)
                             ?: throw ServiceNotBoundException(serviceClass = IAudioPlaybackService::class.java)
@@ -85,7 +87,6 @@ class SongsViewModel
     }
 
     private fun MusicCardData.calculateSeekToValue(position: Float) = (position * duration).toLong()
-    private fun MusicCardData.isCurrent() = service?.isCurrent(id) == true
 }
 
 sealed class SongScreenEvent {

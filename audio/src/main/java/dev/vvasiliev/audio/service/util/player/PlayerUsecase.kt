@@ -17,6 +17,7 @@ interface PlayerUsecase {
     fun isCurrent(mediaItem: MediaItem): Boolean
     fun isCurrent(id: Long): Boolean
     fun hasCurrent(): Boolean
+    fun getCurrentSongId(): Long?
 
     //State
     fun isPlaying(): Boolean
@@ -64,13 +65,15 @@ class PlayerUsage @Inject constructor(
     }
 
     override fun hasCurrent(): Boolean = player.currentMediaItem != null
+    override fun getCurrentSongId(): Long? =
+        specificThreadExecutor.executeBlocking { player.currentMediaItem?.mediaId?.toLong() }
 
     override fun isPlaying(): Boolean = player.playbackState == PlaybackState.STATE_PLAYING
 
     override fun getState(): Int = player.playbackState
 
     override suspend fun subscribeOnPositionChange(eventListener: AudioEventListener) {
-        val updater = updaterFactory.create(getCurrentMedia())
+        val updater = updaterFactory.create(getCurrentMedia(), ::onCompositionEnd)
         listeners[getCurrentMedia()] = updater
         updater.subscribeOnUpdates(eventListener)
     }
@@ -139,6 +142,12 @@ class PlayerUsage @Inject constructor(
             getCurrentMedia().pickPrevious()
         } ?: throw EmptyPlaylistException(playList?.title ?: "isn't initialized and")
         setCurrent(previous)
+    }
+
+    private fun onCompositionEnd() {
+        player.seekTo(0)
+        cancelPositionUpdates()
+        stop()
     }
 
     private fun getCurrentMedia() =
