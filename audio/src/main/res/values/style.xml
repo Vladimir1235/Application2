@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="NotificationTitleText" parent="TextAppearance.Compat.Notification.Title">
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="NotificationSubtitleText" parent="TextAppearance.Compat.Notification.Info">
+        <item name="android:textSize">16sp</item>
+    </style>
+</resources>

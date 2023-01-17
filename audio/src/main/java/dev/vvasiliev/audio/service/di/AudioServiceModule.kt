@@ -8,6 +8,10 @@ import dagger.Module
 import dagger.Provides
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.AudioPlaybackServiceImpl
+import dev.vvasiliev.audio.service.event.ServiceStateEvent
+import dev.vvasiliev.audio.service.state.holder.AudioServiceStateHolder
+import dev.vvasiliev.audio.service.state.holder.ServiceEventPipeline
+import dev.vvasiliev.audio.service.state.holder.StateHolder
 import dev.vvasiliev.audio.service.util.player.ServiceSpecificThreadExecutor
 
 @Module
@@ -22,6 +26,10 @@ class AudioServiceModule {
     fun provideAudioControlThread(): Looper = HandlerThread("AudioControlThread").also {
         it.start()
     }.looper
+
+    @Provides
+    @AudioServiceScope
+    fun provideAudioServiceStateHolder(): AudioServiceStateHolder = AudioServiceStateHolder()
 
     @Provides
     @AudioServiceScope

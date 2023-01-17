@@ -13,39 +13,10 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import java.lang.ref.WeakReference
 
 object ReadStoragePermissionLauncher :
-    ActivityResultCallback<Map<String, Boolean>> {
-
-    private var launcher: WeakReference<ActivityResultLauncher<Array<String>>>? = null
-    private var continuation: CancellableContinuation<Boolean>? = null
-
-    private val permissions = mutableListOf(Manifest.permission.READ_EXTERNAL_STORAGE).apply {
+    PermissionRequestHelper(mutableListOf(Manifest.permission.READ_EXTERNAL_STORAGE).apply {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) add("android.permission.READ_MEDIA_AUDIO")
-    }.toTypedArray()
+    }.toTypedArray()) {
 
-    fun create(activity: ComponentActivity) {
-        launcher = WeakReference(
-            activity.registerForActivityResult(
-                ActivityResultContracts.RequestMultiplePermissions(),
-                this@ReadStoragePermissionLauncher
-            )
-        )
-    }
-
-    private fun Context.checkStoragePermission() =
-        permissions.any { checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }
-
-    suspend fun requestExternalStorage(context: Context) = suspendCancellableCoroutine {
-        this.continuation = it
-        if (!context.checkStoragePermission())
-            launcher?.let {
-                it.get()?.launch(permissions)
-            }
-        else continuation?.resumeWith(Result.success(true))
-    }
-
-    override fun onActivityResult(result: Map<String, Boolean>?) {
-        continuation?.resumeWith(Result.success(result?.values?.any { !it } ?: false))
-        continuation = null
-    }
-
+    override fun buildResult(result: Map<String, Boolean>): Result<Boolean> =
+        Result.success(result.values.any { it })
 }

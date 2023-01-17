@@ -5,14 +5,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.PopupProperties
 
 @Composable
-fun MusicDropDownMenu(items: MusicDropDownItems) {
+fun MusicDropDownMenu(items: MusicDropDownItems, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
-    Box {
+    Box (modifier = modifier){
         IconButton(onClick = { expanded = !expanded }) {
             Icon(imageVector = Icons.Default.Menu, contentDescription = "menuIcon")
         }

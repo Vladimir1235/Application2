@@ -14,7 +14,6 @@ interface AudioServiceComponent {
     interface Builder {
         @BindsInstance
         fun bindContext(context: Context): Builder
-
         fun build(): AudioServiceComponent
     }
 }

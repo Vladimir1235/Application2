@@ -2,6 +2,7 @@ package dev.vvasiliev.view.composable.modular.music
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -23,55 +24,62 @@ fun MusicCard(
     data: MusicCardData,
     onStateChanged: (Boolean) -> Unit,
     onPositionChanged: (Float) -> Unit,
+    onClick: () -> Unit = {},
     menuItems: MusicDropDownItems? = null
 ) {
     val progressState by remember { data.position }
     val isPlaying by remember { data.playing }
 
     Card(modifier = modifier) {
-        Column(Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp)) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = data.title,
-                    style = MaterialTheme.typography.titleMedium
-                ); menuItems?.let { MusicDropDownMenu(items = it) }
-            }
-            Text(text = data.author, style = MaterialTheme.typography.bodyMedium)
-            Text(text = data.album, style = MaterialTheme.typography.bodySmall)
-        }
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(
-                    onClick = {
-                        data.setPlayingStatus(!isPlaying)
-                        onStateChanged(isPlaying)
-                    },
-                    modifier = Modifier.padding(start = 8.dp)
+        Box {
+            Column(
+                Modifier
+                    .clickable { onClick() }
+                    .padding(start = 16.dp, top = 8.dp, end = 16.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = if (isPlaying) "Stop" else "Play")
-                }
-                Box {
                     Text(
-                        text = data.getDurationTime(),
-                        modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(end = 16.dp, top = 24.dp),
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                    InteractableProgress(
-                        Modifier
-                            .height(10.dp)
-                            .padding(horizontal = 8.dp)
-                            .align(Alignment.Center),
-                        progressState = progressState,
-                        onStateChanged = { position ->
-                            data.setPlayingPosition(position)
-                            onPositionChanged(position)
-                        })
+                        text = data.title,
+                        style = MaterialTheme.typography.titleMedium
+                    ); menuItems?.let { MusicDropDownMenu(items = it) }
+                }
+                Text(text = data.author, style = MaterialTheme.typography.bodyMedium)
+                Text(text = data.album, style = MaterialTheme.typography.bodySmall)
+
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TextButton(
+                            onClick = {
+                                data.setPlayingStatus(!isPlaying)
+                                onStateChanged(isPlaying)
+                            },
+                            modifier = Modifier.padding(start = 8.dp)
+                        ) {
+                            Text(text = if (isPlaying) "Stop" else "Play")
+                        }
+                        Box {
+                            Text(
+                                text = data.getDurationTime(),
+                                modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(end = 16.dp, top = 24.dp),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                            InteractableProgress(
+                                Modifier
+                                    .height(10.dp)
+                                    .padding(horizontal = 8.dp)
+                                    .align(Alignment.Center),
+                                progressState = progressState,
+                                onStateChanged = { position ->
+                                    data.setPlayingPosition(position)
+                                    onPositionChanged(position)
+                                })
+                        }
+                    }
                 }
             }
         }

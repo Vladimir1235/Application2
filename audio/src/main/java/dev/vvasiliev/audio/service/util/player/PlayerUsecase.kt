@@ -4,9 +4,14 @@ import android.media.session.PlaybackState
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import dev.vvasiliev.audio.AudioEventListener
+import dev.vvasiliev.audio.service.broadcast.NotificationBroadcastReceiver
 import dev.vvasiliev.audio.service.data.EndOfPlayListException
 import dev.vvasiliev.audio.service.data.Playlist
 import dev.vvasiliev.audio.service.data.StartOfPlayListException
+import dev.vvasiliev.audio.service.notifications.audio.AudioNotificationManager
+import dev.vvasiliev.audio.service.state.AudioServiceState
+import dev.vvasiliev.audio.service.state.holder.ServiceEventPipeline
+import dev.vvasiliev.audio.service.state.holder.StateHolder
 import dev.vvasiliev.audio.service.util.player.updater.PlayerProgressUpdate
 import dev.vvasiliev.audio.service.util.player.updater.PlayerProgressUpdateFactory
 import javax.inject.Inject
@@ -22,8 +27,8 @@ interface PlayerUsecase {
     //State
     fun isPlaying(): Boolean
     fun getState(): Int
-    suspend fun subscribeOnPositionChange(eventListener: AudioEventListener)
-    suspend fun unsubscribeOnPositionChange(eventListener: AudioEventListener)
+    fun subscribeOnPositionChange(eventListener: AudioEventListener)
+    fun unsubscribeOnPositionChange(eventListener: AudioEventListener)
     fun requestPositionUpdates()
     fun cancelPositionUpdates()
 
@@ -39,13 +44,17 @@ interface PlayerUsecase {
 
 class PlayerUsage @Inject constructor(
     private val player: ExoPlayer,
-    private val specificThreadExecutor: ServiceSpecificThreadExecutor,
-    private val updaterFactory: PlayerProgressUpdateFactory
+    private val executor: ServiceSpecificThreadExecutor,
+    private val updaterFactory: PlayerProgressUpdateFactory,
+    private val state: ServiceEventPipeline,
+    private val notifications: AudioNotificationManager
 ) : PlayerUsecase {
 
     private val listeners: MutableMap<MediaItem, PlayerProgressUpdate> = mutableMapOf()
 
     private val playList: Playlist.AudioPlaylist? = null
+
+    private val notificationBroadcastReceiver = NotificationBroadcastReceiver(this);
 
     override fun setCurrent(mediaItem: MediaItem) {
         player.setMediaItem(mediaItem)
@@ -66,19 +75,20 @@ class PlayerUsage @Inject constructor(
 
     override fun hasCurrent(): Boolean = player.currentMediaItem != null
     override fun getCurrentSongId(): Long? =
-        specificThreadExecutor.executeBlocking { player.currentMediaItem?.mediaId?.toLong() }
+        executor.executeBlocking { player.currentMediaItem?.mediaId?.toLong() }
 
-    override fun isPlaying(): Boolean = player.playbackState == PlaybackState.STATE_PLAYING
+    override fun isPlaying(): Boolean =
+        executor.executeBlocking { player.playbackState == PlaybackState.STATE_PLAYING }
 
-    override fun getState(): Int = player.playbackState
+    override fun getState(): Int = executor.executeBlocking { player.playbackState }
 
-    override suspend fun subscribeOnPositionChange(eventListener: AudioEventListener) {
+    override fun subscribeOnPositionChange(eventListener: AudioEventListener) {
         val updater = updaterFactory.create(getCurrentMedia(), ::onCompositionEnd)
         listeners[getCurrentMedia()] = updater
         updater.subscribeOnUpdates(eventListener)
     }
 
-    override suspend fun unsubscribeOnPositionChange(eventListener: AudioEventListener) {
+    override fun unsubscribeOnPositionChange(eventListener: AudioEventListener) {
         listeners[getCurrentMedia()]?.unsubscribeOnUpdates(eventListener)
     }
 
@@ -94,19 +104,35 @@ class PlayerUsage @Inject constructor(
      * Plays [currentItem]
      */
     override fun play() {
-        player.play()
+        executor.executeBlocking {
+            player.play()
+        }
+
+        state.onServiceStateChanged(AudioServiceState.PLAYING)
+        getCurrentSongId()?.let(state::onPlaybackStarted)
+        notifications.showPlayNotification(getCurrentMedia().mediaMetadata)
     }
 
     override fun resume() {
-        player.prepare()
-        play()
+        executor.executeBlocking {
+            player.prepare()
+            play()
+        }
     }
 
     /**
      * Stop [player]
      */
     override fun stop() {
-        player.stop()
+        executor.executeBlocking {
+            player.stop()
+            cancelPositionUpdates()
+
+            state.onServiceStateChanged(AudioServiceState.STOPPED)
+            getCurrentSongId()?.let(state::onPlaybackStopped)
+
+            notifications.showStoppedNotification(getCurrentMedia().mediaMetadata)
+        }
     }
 
     /**
@@ -151,7 +177,7 @@ class PlayerUsage @Inject constructor(
     }
 
     private fun getCurrentMedia() =
-        specificThreadExecutor.executeBlocking {
+        executor.executeBlocking {
             player.currentMediaItem
         } ?: throw EmptyPlaylistException("standard query")
 }
