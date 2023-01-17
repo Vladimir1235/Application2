@@ -13,13 +13,11 @@ class NotificationBroadcastReceiver @Inject constructor(private val player: Play
     BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         Timber.d("Received notification")
-        context?.let { context ->
-            intent?.extras?.getParcelable<NotificationCommand>("command")?.let { command ->
-                when (command) {
-                    is PlayPauseCommand -> {
-                        Timber.d("Play Pause clicked")
-                        if (player.isPlaying()) player.stop() else player.resume()
-                    }
+        intent?.extras?.getParcelable<NotificationCommand>("command")?.let { command ->
+            when (command) {
+                is PlayPauseCommand -> {
+                    Timber.d("Play Pause clicked")
+                    if (player.isPlaying()) player.stop() else player.resume()
                 }
             }
         }

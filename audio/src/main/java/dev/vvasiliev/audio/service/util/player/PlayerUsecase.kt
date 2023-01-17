@@ -73,7 +73,7 @@ class PlayerUsage @Inject constructor(
         } ?: false
     }
 
-    override fun hasCurrent(): Boolean = player.currentMediaItem != null
+    override fun hasCurrent(): Boolean = executor.executeBlocking{ player.currentMediaItem != null }
     override fun getCurrentSongId(): Long? =
         executor.executeBlocking { player.currentMediaItem?.mediaId?.toLong() }
 

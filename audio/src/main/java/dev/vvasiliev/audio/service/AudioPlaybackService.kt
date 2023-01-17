@@ -6,6 +6,7 @@ import android.content.IntentFilter
 import android.os.IBinder
 import dev.vvasiliev.audio.BuildConfig
 import dev.vvasiliev.audio.IAudioPlaybackService
+import dev.vvasiliev.audio.service.broadcast.HeadphonesBroadcastReceiver
 import dev.vvasiliev.audio.service.broadcast.NotificationBroadcastReceiver
 import dev.vvasiliev.audio.service.broadcast.command.PlayPauseCommand
 import dev.vvasiliev.audio.service.di.AudioServiceComponent
@@ -36,7 +37,10 @@ class AudioPlaybackService : Service() {
     lateinit var service: IAudioPlaybackService
 
     @Inject
-    lateinit var receiver: NotificationBroadcastReceiver
+    lateinit var headPhonesReceiver: HeadphonesBroadcastReceiver
+
+    @Inject
+    lateinit var notificationReceiver: NotificationBroadcastReceiver
 
     override fun onCreate() {
         super.onCreate()
@@ -71,11 +75,13 @@ class AudioPlaybackService : Service() {
     }
 
     private fun registerBroadcastReceiver() {
-        registerReceiver(receiver, IntentFilter(PlayPauseCommand.getName(this)))
+        registerReceiver(headPhonesReceiver, IntentFilter(Intent.ACTION_HEADSET_PLUG))
+        registerReceiver(notificationReceiver, IntentFilter(PlayPauseCommand.getName(this)))
     }
 
     private fun unregisterBroadcastReceiver() {
-        unregisterReceiver(receiver)
+        unregisterReceiver(headPhonesReceiver)
+        unregisterReceiver(notificationReceiver)
     }
 
     private fun initTimber() {
