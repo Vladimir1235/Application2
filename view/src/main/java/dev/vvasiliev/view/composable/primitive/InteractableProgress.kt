@@ -38,7 +38,7 @@ fun InteractableProgress(
                     strokeWidth = size.height,
                     cap = StrokeCap.Round
                 )
-                if (currentProgress > size.width * 0.01) {
+                if (currentProgress > size.width * 0.001) {
                     drawLine(
                         foregroundColor,
                         start = Offset(x = 0f, y = size.height / 2),

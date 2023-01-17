@@ -8,7 +8,7 @@ import dev.vvasiliev.application.core.di.scope.MainActivityScope
 import dev.vvasiliev.application.core.di.viewmodel.ViewModelKey
 import dev.vvasiliev.application.screen.songs.SongsViewModel
 
-@Module
+@Module(includes = [MainActivityModule::class])
 interface MainBindsModule {
 
     @Binds

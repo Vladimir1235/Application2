@@ -1,126 +1,123 @@
 package dev.vvasiliev.audio.service
 
-import android.net.Uri
-import android.util.Log
-import com.google.android.exoplayer2.ExoPlayer
+import android.media.session.PlaybackState
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player.*
+import com.google.android.exoplayer2.MediaMetadata
 import dev.vvasiliev.audio.AudioEventListener
+import dev.vvasiliev.audio.AudioServiceStateListener
 import dev.vvasiliev.audio.IAudioPlaybackService
+import dev.vvasiliev.audio.service.data.SongMetadata
+import dev.vvasiliev.audio.service.event.PlaybackStarted
+import dev.vvasiliev.audio.service.event.PlaybackStopped
+import dev.vvasiliev.audio.service.event.ServiceStateChanged
 import dev.vvasiliev.audio.service.state.AudioServiceState
-import dev.vvasiliev.audio.service.util.AudioUtils.isEnd
-import kotlinx.coroutines.*
-import java.lang.ref.WeakReference
+import dev.vvasiliev.audio.service.state.holder.AudioServiceStateHolder
+import dev.vvasiliev.audio.service.util.player.PlayerUsecase
+import dev.vvasiliev.audio.service.util.player.ServiceSpecificThreadExecutor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+const val ID_UNSPECIFIED: Long = -1
 
-private const val REFRESH_RATE = 500L
+class AudioPlaybackServiceImpl @Inject constructor(
+    private val player: PlayerUsecase,
+    private val executor: ServiceSpecificThreadExecutor,
+    private val state: AudioServiceStateHolder
+) : IAudioPlaybackService.Stub() {
 
-class AudioPlaybackServiceImpl @Inject constructor(private val exoplayer: ExoPlayer) :
-    IAudioPlaybackService.Stub() {
+    private var listener: AudioServiceStateListener? = null
 
-    private var localScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
-    private var listener: WeakReference<AudioEventListener>? = null
+    override fun play(metadata: SongMetadata, startPosition: Long) {
+        executor.execute {
 
-    override fun play(uri: Uri, id: Long, listener: AudioEventListener, startPosition: Long) {
-        exoplayer.run {
+            val song = buildSong(metadata)
 
-            val song = buildSong(uri, id)
-
-            val isCurrent = song.isCurrent(this)
+            val isCurrent = player.isCurrent(song)
 
             if (!isCurrent) {
-                if (mediaItemCount > 0) {
+                if (player.isPlaying()) {
                     stopCurrent()
-                    clearMediaItems()
                 }
-                addMediaItem(song)
-                seekTo(startPosition)
+                player.setCurrent(song)
+                player.switchTo(startPosition)
             }
 
-            prepare()
-
-            if (isCurrent) {
-                seekTo(currentPosition)
-            }
-
-            updateCurrentPosition(listener)
-            resumeCurrent()
+            player.resume()
         }
     }
 
     override fun getState(): AudioServiceState =
-        exoplayer.playbackState.let {
-            when (it) {
-                STATE_IDLE -> AudioServiceState.STOPPED
-                STATE_READY -> AudioServiceState.STOPPED
-                STATE_BUFFERING -> AudioServiceState.PLAYING
-                STATE_ENDED -> AudioServiceState.STOPPED
-                else -> AudioServiceState.NOT_CREATED
-            }
+        when (player.getState()) {
+            PlaybackState.STATE_BUFFERING,
+            PlaybackState.STATE_PLAYING -> AudioServiceState.PLAYING
+            PlaybackState.STATE_STOPPED,
+            PlaybackState.STATE_PAUSED,
+            PlaybackState.STATE_ERROR -> AudioServiceState.STOPPED
+            else -> AudioServiceState.UNKNOWN
         }
 
+
     override fun seekTo(position: Long) {
-        exoplayer.run {
-            this.seekTo(position)
+        executor.execute {
+            player.switchTo(position)
         }
     }
 
     override fun stopCurrent() {
-        localScope.cancel()
-        localScope = CoroutineScope(Dispatchers.IO)
-        listener?.get()?.onPlaybackStopped()
-        exoplayer.stop()
+        executor.executeBlocking {
+            player.cancelPositionUpdates()
+            player.stop()
+        }
     }
 
-    override fun resumeCurrent() {
-        exoplayer.play()
+    override fun getCurrentSongId(): Long = player.getCurrentSongId() ?: ID_UNSPECIFIED
+
+    override fun registerAudioEventListener(listener: AudioEventListener) {
+        updateCurrentPosition(listener)
     }
 
-    override fun isCurrent(id: Long): Boolean =
-        exoplayer.currentMediaItem?.mediaId == id.toString()
+    override fun unregisterAudioEventListener(listener: AudioEventListener) {
+        player.unsubscribeOnPositionChange(listener)
+    }
 
-    private fun buildSong(uri: Uri, id: Long) = MediaItem.Builder()
-        .setUri(uri)
-        .setMediaId(id.toString())
-        .build()
-
-    private fun MediaItem.isCurrent(exoPlayer: ExoPlayer) =
-        exoPlayer.currentMediaItem?.mediaId == mediaId
-
-    private fun updateCurrentPosition(listener: AudioEventListener) {
-        localScope = CoroutineScope(Dispatchers.IO)
-        this.listener = WeakReference(listener)
-        localScope.launch {
-            listener.run {
-                while (listener != null) {
-                    var position: Long
-                    var isPlaying: Boolean
-                    var duration: Long
-                    withContext(Dispatchers.Main) {
-                        position = exoplayer.currentPosition
-                        duration = exoplayer.duration
-                        isPlaying = exoplayer.isPlaying
+    override fun registerStateListener(listener: AudioServiceStateListener?) {
+        this.listener = listener
+        val aListener = this.listener
+        CoroutineScope(Dispatchers.IO).launch {
+            state.getFlow().collect { serviceStateEvent ->
+                when (serviceStateEvent) {
+                    is ServiceStateChanged -> {
+                        aListener?.onAudioServiceStateChanged(serviceStateEvent.serviceState)
                     }
-                    if (isPlaying) {
-                        onPositionChange(position)
-                        Log.d("Player", "Position changed")
-                        if (position.isEnd(duration)) {
-                            stopAndSwitchToStart()
-                        }
+                    is PlaybackStarted -> {
+                        aListener?.onPlaybackStarted(serviceStateEvent.songId)
                     }
-                    delay(REFRESH_RATE)
+                    is PlaybackStopped -> {
+                        aListener?.onPlaybackStopped(serviceStateEvent.songId)
+                    }
                 }
-                cancel()
             }
         }
     }
 
-    private suspend fun stopAndSwitchToStart() {
-        withContext(Dispatchers.Main) {
-            exoplayer.clearMediaItems()
-            listener?.get()?.onPositionChange(0)
-            stopCurrent()
+    override fun unregisterStateListener() {
+        listener = null
+    }
+
+    private fun buildSong(metadata: SongMetadata) = MediaItem.Builder()
+        .setUri(metadata.uri)
+        .setMediaId(metadata.id.toString())
+        .setMediaMetadata(
+            MediaMetadata.Builder().setTitle(metadata.title).setArtist(metadata.artist).build()
+        )
+        .build()
+
+    private fun updateCurrentPosition(listener: AudioEventListener) {
+        CoroutineScope(Dispatchers.IO).launch {
+            player.subscribeOnPositionChange(listener)
+            player.requestPositionUpdates()
         }
     }
 }

@@ -1,21 +1,29 @@
 package dev.vvasiliev.application.screen.songs
 
 import android.content.Context
+import android.net.Uri
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import dev.vvasiliev.application.exception.ServiceException
 import dev.vvasiliev.application.exception.ServiceNotBoundException
-import dev.vvasiliev.application.screen.navigation.Destination
+import dev.vvasiliev.application.screen.songs.usecase.ContentUpdateListener
 import dev.vvasiliev.application.screen.songs.usecase.GetAudio
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.data.EventListener
+import dev.vvasiliev.audio.service.data.SongMetadata
+import dev.vvasiliev.audio.service.event.PlaybackStarted
+import dev.vvasiliev.audio.service.event.PlaybackStopped
+import dev.vvasiliev.audio.service.event.ServiceStateEvent
+import dev.vvasiliev.audio.service.state.AudioServiceState
 import dev.vvasiliev.audio.service.util.AudioServiceConnector
+import dev.vvasiliev.structures.android.permission.NotificationPermissionLauncher
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
 import dev.vvasiliev.view.composable.modular.music.MusicCardData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,26 +32,61 @@ class SongsViewModel
     private val context: Context,
     private val serviceConnector: AudioServiceConnector,
     private val getAudio: GetAudio,
-    private val navHostController: NavHostController
+    private val navHostController: NavHostController,
+    _serviceStatus: MutableStateFlow<AudioServiceState>,
+    _playbackStatus: MutableStateFlow<ServiceStateEvent>
 ) : ViewModel() {
+
+    private val contentObserver: ContentUpdateListener = ContentUpdateListener {
+        fetchSongsAsync()
+    }
 
     private val _musicList: MutableStateFlow<MutableList<MusicCardData>> =
         MutableStateFlow(mutableListOf())
+
     val musicList: StateFlow<List<MusicCardData>> = _musicList
+    val playbackStatus: StateFlow<ServiceStateEvent> = _playbackStatus
+    val serviceStatus: StateFlow<AudioServiceState> = _serviceStatus
 
     private var service: IAudioPlaybackService? = null
 
     suspend fun onCreate() {
         viewModelScope.launch {
-            if (ReadStoragePermissionLauncher.requestExternalStorage(context)) {
+            if (ReadStoragePermissionLauncher.requestPermission(context)) {
                 service = serviceConnector.getService()
                 fetchSongs()
+            }
+            NotificationPermissionLauncher.requestPermission(context)
+            getPlaybackUpdates()
+        }
+    }
+
+    private suspend fun getPlaybackUpdates() {
+        playbackStatus.collectLatest { event ->
+            when (event) {
+                is PlaybackStopped -> {
+                    musicList.value.find { cardData ->
+                        cardData.id == event.songId
+                    }?.setPlayingStatus(false)
+                }
+                is PlaybackStarted -> {
+                    musicList.value.find { cardData ->
+                        cardData.id == event.songId
+                    }?.let { data ->
+                        data.setPlayingStatus(true)
+                        service?.registerAudioEventListener(data.createListener())
+                    }
+                }
             }
         }
     }
 
+    private fun fetchSongsAsync() {
+        viewModelScope.launch { fetchSongs() }
+    }
+
     private suspend fun fetchSongs() {
-        _musicList.emit(getAudio())
+        _musicList.emit(getAudio(contentObserver = contentObserver))
     }
 
     fun onEvent(event: SongScreenEvent) {
@@ -52,12 +95,10 @@ class SongsViewModel
                 is SongScreenEvent.PlayEvent -> with(event.musicCardData) {
                     val startingPosition = calculateSeekToValue(position.value)
                     service?.play(
-                        uri, id,
-                        EventListener(
-                            onChange = { position -> updatePosition(position) },
-                            onPlaybackStopped = { setPlayingStatus(false) }
-                        ), startingPosition
+                        SongMetadata(id, uri, title, author),
+                        startingPosition
                     )
+                    service?.registerAudioEventListener(createListener())
                         ?: throw ServiceNotBoundException(serviceClass = IAudioPlaybackService::class.java)
                 }
 
@@ -67,31 +108,40 @@ class SongsViewModel
                 }
 
                 is SongScreenEvent.PositionChanged -> with(event.musicCardData) {
-                    if (isCurrent()) {
+                    val isCurrentSong = event.musicCardData.id == service?.currentSongId
+
+                    if (isCurrentSong) {
                         val positionMs = calculateSeekToValue(event.position)
                         service?.seekTo(positionMs)
                             ?: throw ServiceNotBoundException(serviceClass = IAudioPlaybackService::class.java)
                     }
                 }
                 is SongScreenEvent.CardClickEvent -> {
-                    navHostController.navigate(
-                        Destination.MusicDetailedScreen(id = event.id).applyId()
-                    )
+//                    navHostController.navigate(
+//                        Destination.MusicEditScreen(uri = event.uri).applyUri()
+//                    )
                 }
             }
         } catch (exception: ServiceException) {
-            Toast.makeText(context, exception.message, Toast.LENGTH_SHORT)
+            Toast.makeText(context, exception.message, Toast.LENGTH_SHORT).show()
         }
     }
 
+    private fun MusicCardData.createListener() =
+        EventListener(onChange = { position ->
+            updatePosition(
+                position
+            )
+        },
+            onPlaybackStopped = { setPlayingStatus(false) }
+        )
+
     private fun MusicCardData.calculateSeekToValue(position: Float) = (position * duration).toLong()
-    private fun MusicCardData.isCurrent() = service?.isCurrent(id) == true
 }
 
 sealed class SongScreenEvent {
     class PlayEvent(val musicCardData: MusicCardData) : SongScreenEvent()
     class StopEvent : SongScreenEvent()
-    class CardClickEvent(val id: Long) : SongScreenEvent()
-    class PositionChanged(val musicCardData: MusicCardData, val position: Float) :
-        SongScreenEvent()
+    class CardClickEvent(val uri: Uri) : SongScreenEvent()
+    class PositionChanged(val musicCardData: MusicCardData, val position: Float) : SongScreenEvent()
 }

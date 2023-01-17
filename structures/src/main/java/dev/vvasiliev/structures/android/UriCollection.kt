@@ -2,15 +2,19 @@ package dev.vvasiliev.structures.android
 
 import android.content.ContentUris
 import android.content.Context
+import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.provider.MediaStore.Audio.Media
 import dev.vvasiliev.structures.android.AudioFileCollection.Audio.Companion.fields
 
-fun interface UriCollection<Content> {
+interface UriCollection<Content> {
     fun getAllContent(): List<Content>
+    fun registerCollectionUpdateCallback(contentObserver: ContentObserver)
 }
 
 private val collectionUri =
@@ -28,7 +32,7 @@ class AudioFileCollection constructor(private val context: Context) :
         val uri: Uri,
         val duration: Long
     ) {
-        companion object{
+        companion object {
             private val ID = "ID"
             private val ALBUM = "ALBUM"
             private val TITLE = "TITLE"
@@ -67,11 +71,16 @@ class AudioFileCollection constructor(private val context: Context) :
         context.contentResolver.query(collectionUri, fields.values.toTypedArray(), null, null)
             ?.use { cursor ->
                 while (cursor.moveToNext()) {
-                   list.add(Audio.Builder(cursor).build())
+                    list.add(Audio.Builder(cursor).build())
                 }
             }
         return list
     }
+
+    override fun registerCollectionUpdateCallback(contentObserver: ContentObserver) {
+        context.contentResolver.registerContentObserver(collectionUri, true, contentObserver)
+    }
+
     private val collectionRows =
         arrayOf(Media._ID, Media.ALBUM, Media.TITLE, Media.ARTIST, Media.DURATION)
 }

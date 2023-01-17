@@ -1,6 +1,5 @@
 package dev.vvasiliev.application
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,25 +11,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
 import dev.vvasiliev.application.core.app.MyPlayerApp
+import dev.vvasiliev.application.core.config.AppConfigurator
 import dev.vvasiliev.application.screen.navigation.Navigator
-import dev.vvasiliev.audio.service.AudioPlaybackService
-import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher.create
+import dev.vvasiliev.structures.android.permission.NotificationPermissionLauncher
+import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
 import dev.vvasiliev.view.composable.splash.screen.SplashScreen
 import javax.inject.Inject
 
 class MainActivity : ComponentActivity() {
 
-    val launcher = create(this@MainActivity)
+    init {
+        ReadStoragePermissionLauncher.create(this@MainActivity)
+        NotificationPermissionLauncher.create(this@MainActivity)
+    }
 
     @Inject
     lateinit var navigator: Navigator
 
+    @Inject
+    lateinit var configurator: AppConfigurator
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        startForegroundService(
-            Intent(this.application.applicationContext, AudioPlaybackService::class.java)
-        )
 
         setContent {
             AppTheme {
@@ -38,10 +40,16 @@ class MainActivity : ComponentActivity() {
                     //Inject This activity into dependency graph
                     MyPlayerApp.dagger.mainActivityModule.bindNavController(rememberNavController())
                         .build().injectMainActivity(this)
+                    configurator.configure()
                     navigator.Navigation()
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+//        configurator.stopMusicService(context = this)
     }
 }
 

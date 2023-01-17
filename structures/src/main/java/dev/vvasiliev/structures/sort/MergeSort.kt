@@ -2,9 +2,9 @@ package dev.vvasiliev.structures.sort
 
 class MergeSort {
 
-    val arrayExample = Array(4500000) { index ->
-        (Math.random() * if (index % 2 > 0) index * 10 else -index * 10).toInt()
-    }
+    val arrayExample = Array(1929999) { index ->
+        (index * Math.pow(-index.toDouble(), index.toDouble())).toInt()
+    }.apply { shuffle() }
 
     fun Array<Int>.split(): List<Array<Int>> {
         if (size > 1) {

@@ -2,13 +2,20 @@ package dev.vvasiliev.audio.service
 
 import android.app.Service
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.IBinder
-import android.util.Log
+import dev.vvasiliev.audio.BuildConfig
 import dev.vvasiliev.audio.IAudioPlaybackService
+import dev.vvasiliev.audio.service.broadcast.NotificationBroadcastReceiver
+import dev.vvasiliev.audio.service.broadcast.command.PlayPauseCommand
 import dev.vvasiliev.audio.service.di.AudioServiceComponent
 import dev.vvasiliev.audio.service.di.DaggerAudioServiceComponent
+import dev.vvasiliev.audio.service.notifications.NotificationUtils.FOREGROUND_CHANNEL_ID
 import dev.vvasiliev.audio.service.notifications.NotificationUtils.buildInitialNotification
+import dev.vvasiliev.audio.service.notifications.NotificationUtils.buildNotificationActivityUnBind
 import dev.vvasiliev.audio.service.notifications.NotificationUtils.createNotificationChannel
+import dev.vvasiliev.audio.service.notifications.NotificationUtils.getNotificationManager
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -21,7 +28,6 @@ import javax.inject.Inject
  */
 class AudioPlaybackService : Service() {
 
-
     private val serviceComponent: AudioServiceComponent by lazy {
         DaggerAudioServiceComponent.builder().bindContext(this).build()
     }
@@ -29,9 +35,14 @@ class AudioPlaybackService : Service() {
     @Inject
     lateinit var service: IAudioPlaybackService
 
+    @Inject
+    lateinit var receiver: NotificationBroadcastReceiver
+
     override fun onCreate() {
         super.onCreate()
+        initTimber()
         serviceComponent.injectService(this)
+        registerBroadcastReceiver()
     }
 
     override fun onBind(intent: Intent?): IBinder {
@@ -43,10 +54,35 @@ class AudioPlaybackService : Service() {
         createNotificationChannel()
 
         startForeground(
-            3211,
+            FOREGROUND_CHANNEL_ID + 1,
             buildInitialNotification(this)
         )
-        Log.d(this.packageName, "Service started!")
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        Timber.d("Client Disconnected")
+        unregisterBroadcastReceiver()
+        getNotificationManager(this).notify(
+            FOREGROUND_CHANNEL_ID + 1,
+            buildNotificationActivityUnBind(this)
+        )
+        return true
+    }
+
+    private fun registerBroadcastReceiver() {
+        registerReceiver(receiver, IntentFilter(PlayPauseCommand.getName(this)))
+    }
+
+    private fun unregisterBroadcastReceiver() {
+        unregisterReceiver(receiver)
+    }
+
+    private fun initTimber() {
+        if (BuildConfig.LOG_ENABLED) {
+            if (Timber.treeCount < 1) {
+                Timber.plant(Timber.DebugTree())
+            }
+        }
     }
 }
