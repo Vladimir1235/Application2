@@ -29,23 +29,11 @@ fun SongsScreen(viewModel: SongsViewModel = viewModel()) {
         viewModel.onCreate()
     }
 
-    val bgColor = rememberInfiniteTransition().animateColor(
-        initialValue = MaterialTheme.colorScheme.secondaryContainer,
-        targetValue = MaterialTheme.colorScheme.primary,
-        animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = FastOutLinearInEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
     val music by viewModel.musicList.collectAsState()
     val serviceStatus by viewModel.serviceStatus.collectAsState()
 
     LazyColumn(
-        modifier = if (serviceStatus == AudioServiceState.PLAYING) Modifier
-            .fillMaxHeight()
-            .background(
-                bgColor.value
-            ) else Modifier.fillMaxHeight()
+        modifier = Modifier.fillMaxHeight()
     ) {
         item { Text(text = "Service Status: $serviceStatus") }
         items(count = music.size) { index ->
