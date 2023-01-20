@@ -1,20 +1,24 @@
 package dev.vvasiliev.structures.android
 
+import android.app.PendingIntent
 import android.content.ContentUris
 import android.content.Context
 import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
+import android.os.Build.VERSION_CODES
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.provider.MediaStore.Audio.Media
+import android.util.Log
 import dev.vvasiliev.structures.android.AudioFileCollection.Audio.Companion.fields
 
 interface UriCollection<Content> {
     fun getAllContent(): List<Content>
     fun registerCollectionUpdateCallback(contentObserver: ContentObserver)
+    fun requestDeleteContent(uri: Uri): PendingIntent?
 }
 
 private val collectionUri =
@@ -83,4 +87,18 @@ class AudioFileCollection constructor(private val context: Context) :
 
     private val collectionRows =
         arrayOf(Media._ID, Media.ALBUM, Media.TITLE, Media.ARTIST, Media.DURATION)
+
+    override fun requestDeleteContent(uri: Uri): PendingIntent? =
+        when (Build.VERSION.SDK_INT) {
+            in IntRange(VERSION_CODES.M, VERSION_CODES.Q) -> {
+                context.contentResolver.delete(uri, null, null)
+                null
+            }
+            in IntRange(VERSION_CODES.R, 34) -> {
+                val request =
+                    MediaStore.createDeleteRequest(context.contentResolver, mutableListOf(uri))
+                request
+            }
+            else -> null
+        }
 }

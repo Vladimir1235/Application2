@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.vvasiliev.audio.service.state.AudioServiceState
+import dev.vvasiliev.structures.android.operation.ContentDeletionLauncher
 import dev.vvasiliev.view.composable.modular.music.MusicCard
 import dev.vvasiliev.view.composable.modular.music.MusicDropDownItems
 
@@ -52,7 +53,9 @@ fun SongsScreen(viewModel: SongsViewModel = viewModel()) {
                     onPositionChanged = { position ->
                         viewModel.onEvent(SongScreenEvent.PositionChanged(music[index], position))
                     },
-                    menuItems = MusicDropDownItems.MusicCardDropDownItems()
+                    menuItems = MusicDropDownItems.MusicCardDropDownItems(onDeleteItemClick = {
+                        viewModel.onEvent(SongScreenEvent.DeleteAudioItem(uri))
+                    })
                 )
             }
         }

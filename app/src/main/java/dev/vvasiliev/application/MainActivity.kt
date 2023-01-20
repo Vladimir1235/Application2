@@ -1,8 +1,10 @@
 package dev.vvasiliev.application
 
+import android.content.IntentSender
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -13,6 +15,7 @@ import com.example.compose.AppTheme
 import dev.vvasiliev.application.core.app.MyPlayerApp
 import dev.vvasiliev.application.core.config.AppConfigurator
 import dev.vvasiliev.application.screen.navigation.Navigator
+import dev.vvasiliev.structures.android.operation.ContentDeletionLauncher
 import dev.vvasiliev.structures.android.permission.NotificationPermissionLauncher
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
 import dev.vvasiliev.view.composable.splash.screen.SplashScreen
@@ -23,6 +26,10 @@ class MainActivity : ComponentActivity() {
     init {
         ReadStoragePermissionLauncher.create(this@MainActivity)
         NotificationPermissionLauncher.create(this@MainActivity)
+        ContentDeletionLauncher.create(
+            this@MainActivity,
+            ActivityResultContracts.StartIntentSenderForResult()
+        )
     }
 
     @Inject

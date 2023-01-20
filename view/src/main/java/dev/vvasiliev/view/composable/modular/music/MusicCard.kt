@@ -98,17 +98,24 @@ fun MusicCardPreview() {
     )
 }
 
+@Stable
 class MusicCardData(
     isPlaying: Boolean = false,
     private val _status: MutableState<Boolean> = mutableStateOf(isPlaying),
     private val _position: MutableState<Float> = mutableStateOf(0f),
     val playing: State<Boolean> = _status,
     val position: State<Float> = _position,
+    @Stable
     val title: String,
+    @Stable
     val author: String,
+    @Stable
     val album: String,
+    @Stable
     val duration: Long,
+    @Stable
     val uri: Uri,
+    @Stable
     val id: Long
 ) {
     fun setPlayingStatus(state: Boolean) {

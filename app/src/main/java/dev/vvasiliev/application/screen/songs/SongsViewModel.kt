@@ -9,7 +9,7 @@ import androidx.navigation.NavHostController
 import dev.vvasiliev.application.exception.ServiceException
 import dev.vvasiliev.application.exception.ServiceNotBoundException
 import dev.vvasiliev.application.screen.songs.usecase.ContentUpdateListener
-import dev.vvasiliev.application.screen.songs.usecase.GetAudio
+import dev.vvasiliev.application.screen.songs.usecase.Audio
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.data.EventListener
 import dev.vvasiliev.audio.service.data.SongMetadata
@@ -18,6 +18,7 @@ import dev.vvasiliev.audio.service.event.PlaybackStopped
 import dev.vvasiliev.audio.service.event.ServiceStateEvent
 import dev.vvasiliev.audio.service.state.AudioServiceState
 import dev.vvasiliev.audio.service.util.AudioServiceConnector
+import dev.vvasiliev.structures.android.operation.ContentDeletionLauncher
 import dev.vvasiliev.structures.android.permission.NotificationPermissionLauncher
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
 import dev.vvasiliev.view.composable.modular.music.MusicCardData
@@ -25,13 +26,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 class SongsViewModel
 @Inject constructor(
     private val context: Context,
     private val serviceConnector: AudioServiceConnector,
-    private val getAudio: GetAudio,
+    private val audio: Audio,
     private val navHostController: NavHostController,
     _serviceStatus: MutableStateFlow<AudioServiceState>,
     _playbackStatus: MutableStateFlow<ServiceStateEvent>
@@ -86,7 +88,7 @@ class SongsViewModel
     }
 
     private suspend fun fetchSongs() {
-        _musicList.emit(getAudio(contentObserver = contentObserver))
+        _musicList.emit(audio(contentObserver = contentObserver))
     }
 
     fun onEvent(event: SongScreenEvent) {
@@ -114,6 +116,11 @@ class SongsViewModel
                         val positionMs = calculateSeekToValue(event.position)
                         service?.seekTo(positionMs)
                             ?: throw ServiceNotBoundException(serviceClass = IAudioPlaybackService::class.java)
+                    }
+                }
+                is SongScreenEvent.DeleteAudioItem -> {
+                    audio.createDeletionRequest(event.uri)?.let { request ->
+                        viewModelScope.launch { ContentDeletionLauncher.launch(context, request) }
                     }
                 }
                 is SongScreenEvent.CardClickEvent -> {
@@ -144,4 +151,5 @@ sealed class SongScreenEvent {
     class StopEvent : SongScreenEvent()
     class CardClickEvent(val uri: Uri) : SongScreenEvent()
     class PositionChanged(val musicCardData: MusicCardData, val position: Float) : SongScreenEvent()
+    class DeleteAudioItem(val uri: Uri) : SongScreenEvent()
 }
