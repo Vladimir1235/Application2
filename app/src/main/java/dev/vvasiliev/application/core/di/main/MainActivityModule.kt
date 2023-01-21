@@ -5,7 +5,7 @@ import dagger.Module
 import dagger.Provides
 import dev.vvasiliev.application.core.config.AppConfiguration
 import dev.vvasiliev.application.core.di.scope.MainActivityScope
-import dev.vvasiliev.application.screen.songs.usecase.Audio
+import dev.vvasiliev.application.screen.songs.usecase.*
 import dev.vvasiliev.structures.android.AudioFileCollection
 import dev.vvasiliev.structures.android.UriCollection
 
@@ -24,8 +24,13 @@ class MainActivityModule {
 
     @Provides
     @MainActivityScope
-    fun provideGetAudioUseCase(collection: UriCollection<AudioFileCollection.Audio>) =
-        Audio(collection)
+    fun provideGetAudioUseCase(
+        getAudio: GetAudio,
+        shareAudio: ShareAudio,
+        registerObserver: RegisterObserver,
+        deleteAudio: DeleteAudio
+    ) =
+        Audio(getAudio, deleteAudio, shareAudio, registerObserver)
 
     @Provides
     @MainActivityScope

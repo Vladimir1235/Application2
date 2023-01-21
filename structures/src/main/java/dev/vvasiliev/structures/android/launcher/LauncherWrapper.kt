@@ -15,7 +15,7 @@ interface LauncherWrapper<InputType, ResultType> :
 
     var continuation: CancellableContinuation<Boolean>?
 
-    var launcher: WeakReference<ActivityResultLauncher<InputType>?>
+    var launcher: ActivityResultLauncher<InputType>?
 
     fun perform(input: InputType)
     fun buildResult(result: ResultType): Result<Boolean>
@@ -32,12 +32,12 @@ interface LauncherWrapper<InputType, ResultType> :
         activity: ComponentActivity,
         contract: ActivityResultContract<InputType, ResultType>
     ) {
-        launcher = WeakReference(
+        launcher =
             activity.registerForActivityResult(
                 contract,
                 this
             )
-        )
+
     }
 
     fun done(result: ResultType) {

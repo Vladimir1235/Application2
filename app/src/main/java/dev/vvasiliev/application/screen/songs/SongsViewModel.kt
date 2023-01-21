@@ -1,6 +1,5 @@
 package dev.vvasiliev.application.screen.songs
 
-import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -8,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import dev.vvasiliev.application.exception.ServiceException
 import dev.vvasiliev.application.exception.ServiceNotBoundException
-import dev.vvasiliev.application.screen.songs.usecase.ContentUpdateListener
 import dev.vvasiliev.application.screen.songs.usecase.Audio
+import dev.vvasiliev.application.screen.songs.usecase.ContentUpdateListener
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.data.EventListener
 import dev.vvasiliev.audio.service.data.SongMetadata
@@ -18,10 +17,9 @@ import dev.vvasiliev.audio.service.event.PlaybackStopped
 import dev.vvasiliev.audio.service.event.ServiceStateEvent
 import dev.vvasiliev.audio.service.state.AudioServiceState
 import dev.vvasiliev.audio.service.util.AudioServiceConnector
-import dev.vvasiliev.structures.android.operation.ContentDeletionLauncher
 import dev.vvasiliev.structures.android.permission.NotificationPermissionLauncher
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
-import dev.vvasiliev.view.composable.modular.music.MusicCardData
+import dev.vvasiliev.view.composable.modular.music.data.MusicCardData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -31,7 +29,6 @@ import javax.inject.Inject
 
 class SongsViewModel
 @Inject constructor(
-    private val context: Context,
     private val serviceConnector: AudioServiceConnector,
     private val audio: Audio,
     private val navHostController: NavHostController,
@@ -43,7 +40,7 @@ class SongsViewModel
         fetchSongsAsync()
     }
 
-    private val _musicList: MutableStateFlow<MutableList<MusicCardData>> =
+    private val _musicList: MutableStateFlow<List<MusicCardData>> =
         MutableStateFlow(mutableListOf())
 
     val musicList: StateFlow<List<MusicCardData>> = _musicList
@@ -54,11 +51,12 @@ class SongsViewModel
 
     suspend fun onCreate() {
         viewModelScope.launch {
-            if (ReadStoragePermissionLauncher.requestPermission(context)) {
+            if (ReadStoragePermissionLauncher.requestPermission(navHostController.context)) {
                 service = serviceConnector.getService()
                 fetchSongs()
+                audio.registerContentObserver(contentObserver)
             }
-            NotificationPermissionLauncher.requestPermission(context)
+            NotificationPermissionLauncher.requestPermission(navHostController.context)
             getPlaybackUpdates()
         }
     }
@@ -88,7 +86,7 @@ class SongsViewModel
     }
 
     private suspend fun fetchSongs() {
-        _musicList.emit(audio(contentObserver = contentObserver))
+        _musicList.emit(audio.getMusic())
     }
 
     fun onEvent(event: SongScreenEvent) {
@@ -97,8 +95,7 @@ class SongsViewModel
                 is SongScreenEvent.PlayEvent -> with(event.musicCardData) {
                     val startingPosition = calculateSeekToValue(position.value)
                     service?.play(
-                        SongMetadata(id, uri, title, author),
-                        startingPosition
+                        SongMetadata(id, uri, title, author), startingPosition
                     )
                     service?.registerAudioEventListener(createListener())
                         ?: throw ServiceNotBoundException(serviceClass = IAudioPlaybackService::class.java)
@@ -119,29 +116,31 @@ class SongsViewModel
                     }
                 }
                 is SongScreenEvent.DeleteAudioItem -> {
-                    audio.createDeletionRequest(event.uri)?.let { request ->
-                        viewModelScope.launch { ContentDeletionLauncher.launch(context, request) }
-                    }
+                    audio.removeSong(navHostController.context, event.uri, viewModelScope)
                 }
+
                 is SongScreenEvent.CardClickEvent -> {
 //                    navHostController.navigate(
 //                        Destination.MusicEditScreen(uri = event.uri).applyUri()
 //                    )
                 }
+
+                is SongScreenEvent.ShareAudioItem -> {
+                    audio.shareSong(navHostController.context, event.uri, viewModelScope)
+                }
             }
         } catch (exception: ServiceException) {
-            Toast.makeText(context, exception.message, Toast.LENGTH_SHORT).show()
+            Toast.makeText(navHostController.context, exception.message, Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun MusicCardData.createListener() =
-        EventListener(onChange = { position ->
+    private fun MusicCardData.createListener() = EventListener(
+        onChange = { position ->
             updatePosition(
                 position
             )
         },
-            onPlaybackStopped = { setPlayingStatus(false) }
-        )
+        onPlaybackStopped = { setPlayingStatus(false) })
 
     private fun MusicCardData.calculateSeekToValue(position: Float) = (position * duration).toLong()
 }
@@ -152,4 +151,5 @@ sealed class SongScreenEvent {
     class CardClickEvent(val uri: Uri) : SongScreenEvent()
     class PositionChanged(val musicCardData: MusicCardData, val position: Float) : SongScreenEvent()
     class DeleteAudioItem(val uri: Uri) : SongScreenEvent()
+    class ShareAudioItem(val uri: Uri) : SongScreenEvent()
 }

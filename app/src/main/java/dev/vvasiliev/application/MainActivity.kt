@@ -1,6 +1,5 @@
 package dev.vvasiliev.application
 
-import android.content.IntentSender
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,7 +14,9 @@ import com.example.compose.AppTheme
 import dev.vvasiliev.application.core.app.MyPlayerApp
 import dev.vvasiliev.application.core.config.AppConfigurator
 import dev.vvasiliev.application.screen.navigation.Navigator
+import dev.vvasiliev.structures.android.launcher.contract.ShareFileContract
 import dev.vvasiliev.structures.android.operation.ContentDeletionLauncher
+import dev.vvasiliev.structures.android.operation.ShareContentLauncher
 import dev.vvasiliev.structures.android.permission.NotificationPermissionLauncher
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
 import dev.vvasiliev.view.composable.splash.screen.SplashScreen
@@ -24,12 +25,10 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     init {
-        ReadStoragePermissionLauncher.create(this@MainActivity)
-        NotificationPermissionLauncher.create(this@MainActivity)
-        ContentDeletionLauncher.create(
-            this@MainActivity,
-            ActivityResultContracts.StartIntentSenderForResult()
-        )
+        ReadStoragePermissionLauncher.create(this)
+        NotificationPermissionLauncher.create(this)
+        ContentDeletionLauncher.create(this, ActivityResultContracts.StartIntentSenderForResult())
+        ShareContentLauncher.create(this, ShareFileContract())
     }
 
     @Inject

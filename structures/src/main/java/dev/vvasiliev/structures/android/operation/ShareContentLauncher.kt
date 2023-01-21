@@ -1,19 +1,16 @@
 package dev.vvasiliev.structures.android.operation
 
 import android.app.Activity
+import android.net.Uri
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
 import dev.vvasiliev.structures.android.launcher.LauncherWrapper
 import kotlinx.coroutines.CancellableContinuation
-import java.lang.ref.WeakReference
 
-object ContentDeletionLauncher :
-    LauncherWrapper<IntentSenderRequest, ActivityResult> {
+object ShareContentLauncher : LauncherWrapper<Uri, ActivityResult> {
     override var continuation: CancellableContinuation<Boolean>? = null
-    override var launcher: ActivityResultLauncher<IntentSenderRequest>? = null
-
-    override fun perform(input: IntentSenderRequest) {
+    override var launcher: ActivityResultLauncher<Uri>? = null
+    override fun perform(input: Uri) {
         launcher?.launch(input)
     }
 

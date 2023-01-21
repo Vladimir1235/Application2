@@ -1,22 +1,21 @@
 package dev.vvasiliev.view.composable.modular.music
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.vvasiliev.view.R
+import dev.vvasiliev.view.composable.modular.music.data.MusicCardData
 import dev.vvasiliev.view.composable.primitive.InteractableProgress
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun MusicCard(
@@ -96,72 +95,4 @@ fun MusicCardPreview() {
         onPositionChanged = data::setPlayingPosition,
         menuItems = MusicDropDownItems.MusicCardDropDownItems()
     )
-}
-
-@Stable
-class MusicCardData(
-    isPlaying: Boolean = false,
-    private val _status: MutableState<Boolean> = mutableStateOf(isPlaying),
-    private val _position: MutableState<Float> = mutableStateOf(0f),
-    val playing: State<Boolean> = _status,
-    val position: State<Float> = _position,
-    @Stable
-    val title: String,
-    @Stable
-    val author: String,
-    @Stable
-    val album: String,
-    @Stable
-    val duration: Long,
-    @Stable
-    val uri: Uri,
-    @Stable
-    val id: Long
-) {
-    fun setPlayingStatus(state: Boolean) {
-        _status.value = state
-    }
-
-    fun setPlayingPosition(position: Float) {
-        _position.value = position
-    }
-
-    fun updatePosition(position: Long) {
-        setPlayingPosition((position.toFloat() / duration))
-    }
-
-    @Composable
-    fun getDurationTime() = duration.milliseconds.toComponents { minutes, seconds, nanoseconds ->
-        val inprogressString = stringResource(id = R.string.time_in_progress)
-        val pendingString = stringResource(id = R.string.time_pending)
-
-        val progress = (position.value * duration).toLong().milliseconds
-
-        return@toComponents if (playing.value)
-            progress.toComponents { pminutes, pseconds, pnanoseconds ->
-                String.format(
-                    inprogressString,
-                    pminutes,
-                    if (pseconds < 10) "0$pseconds" else pseconds,
-                    minutes,
-                    if (seconds < 10) "0$seconds" else seconds
-                )
-            } else String.format(
-            pendingString,
-            minutes,
-            if (seconds < 10) "0$seconds" else seconds
-        )
-    }
-
-    companion object {
-        fun mock() = MusicCardData(
-            false,
-            title = "SongTitle",
-            author = "Author Name",
-            album = "Album title",
-            duration = 14880,
-            uri = Uri.EMPTY,
-            id = 0
-        )
-    }
 }

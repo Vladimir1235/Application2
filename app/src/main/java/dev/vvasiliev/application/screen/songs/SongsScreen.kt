@@ -55,6 +55,8 @@ fun SongsScreen(viewModel: SongsViewModel = viewModel()) {
                     },
                     menuItems = MusicDropDownItems.MusicCardDropDownItems(onDeleteItemClick = {
                         viewModel.onEvent(SongScreenEvent.DeleteAudioItem(uri))
+                    }, onShareItemClick = {
+                        viewModel.onEvent(SongScreenEvent.ShareAudioItem(uri))
                     })
                 )
             }
