@@ -16,7 +16,7 @@ import java.lang.ref.WeakReference
  * Audio service connector, which helps you to easily obtain [IAudioPlaybackService] object in synchronous way
  */
 class AudioServiceConnector constructor(private val context: Context) : ServiceConnection {
-
+    var connected: Boolean = false
     private var serviceRef: WeakReference<IAudioPlaybackService?> = WeakReference(null)
 
     /**
@@ -25,6 +25,7 @@ class AudioServiceConnector constructor(private val context: Context) : ServiceC
     private var continuation: CancellableContinuation<IAudioPlaybackService>? = null
 
     override fun onServiceConnected(componentName: ComponentName?, binder: IBinder?) {
+        connected = true
         val service = IAudioPlaybackService.Stub.asInterface(binder)
         continuation?.resumeWith(Result.success(service))
         serviceRef = WeakReference(service)
@@ -35,6 +36,7 @@ class AudioServiceConnector constructor(private val context: Context) : ServiceC
      * Unbind service if disconnected
      */
     override fun onServiceDisconnected(componentName: ComponentName?) {
+        connected = false
         context.unbindService(this)
     }
 
@@ -43,6 +45,7 @@ class AudioServiceConnector constructor(private val context: Context) : ServiceC
      */
     override fun onBindingDied(name: ComponentName?) {
         super.onBindingDied(name)
+        connected = false
         serviceRef.clear()
     }
 
@@ -51,6 +54,7 @@ class AudioServiceConnector constructor(private val context: Context) : ServiceC
      */
     override fun onNullBinding(name: ComponentName?) {
         super.onNullBinding(name)
+        connected = false
         serviceRef.clear()
     }
 

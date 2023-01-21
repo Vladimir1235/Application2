@@ -58,11 +58,13 @@ class AppConfigurator @Inject constructor(
     })
 
     private fun startMusicService(context: Context, serviceClass: Class<out Service>) {
-        context.startForegroundService(Intent(context, serviceClass))
-        CoroutineScope(SupervisorJob()).launch {
-            val service = serviceConnector.getService()
-            service.registerStateListener(listener)
-            configuration.serviceStatus.emit(service.state)
+        if (!serviceConnector.connected) {
+            context.startForegroundService(Intent(context, serviceClass))
+            CoroutineScope(Dispatchers.IO).launch {
+                val service = serviceConnector.getService()
+                service.registerStateListener(listener)
+                configuration.serviceStatus.emit(service.state)
+            }
         }
     }
 

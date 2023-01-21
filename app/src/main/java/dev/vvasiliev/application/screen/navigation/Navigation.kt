@@ -3,16 +3,12 @@ package dev.vvasiliev.application.screen.navigation
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import dev.vvasiliev.application.core.di.detail.DaggerDetailComponent
 import dev.vvasiliev.application.core.di.viewmodel.ViewModelInjection
 import dev.vvasiliev.application.screen.detail.DetailScreen
@@ -39,6 +35,7 @@ class Navigator @Inject constructor(
             composable(Destination.MusicScreen.toString()) {
                 val viewModel =
                     (navHostController.context as ComponentActivity).viewModels<SongsViewModel> { viewModelFactory }
+                viewModel.value.onCreate()
                 SongsScreen(viewModel.value)
             }
             composable(

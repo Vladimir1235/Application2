@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 class SongsViewModel
@@ -49,7 +48,8 @@ class SongsViewModel
 
     private var service: IAudioPlaybackService? = null
 
-    suspend fun onCreate() {
+    fun onCreate() {
+
         viewModelScope.launch {
             if (ReadStoragePermissionLauncher.requestPermission(navHostController.context)) {
                 service = serviceConnector.getService()
