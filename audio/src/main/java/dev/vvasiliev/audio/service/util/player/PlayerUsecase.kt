@@ -11,7 +11,6 @@ import dev.vvasiliev.audio.service.data.StartOfPlayListException
 import dev.vvasiliev.audio.service.notifications.audio.AudioNotificationManager
 import dev.vvasiliev.audio.service.state.AudioServiceState
 import dev.vvasiliev.audio.service.state.holder.ServiceEventPipeline
-import dev.vvasiliev.audio.service.state.holder.StateHolder
 import dev.vvasiliev.audio.service.util.player.updater.PlayerProgressUpdate
 import dev.vvasiliev.audio.service.util.player.updater.PlayerProgressUpdateFactory
 import javax.inject.Inject
@@ -73,7 +72,9 @@ class PlayerUsage @Inject constructor(
         } ?: false
     }
 
-    override fun hasCurrent(): Boolean = executor.executeBlocking{ player.currentMediaItem != null }
+    override fun hasCurrent(): Boolean =
+        executor.executeBlocking { player.currentMediaItem != null }
+
     override fun getCurrentSongId(): Long? =
         executor.executeBlocking { player.currentMediaItem?.mediaId?.toLong() }
 
@@ -84,7 +85,13 @@ class PlayerUsage @Inject constructor(
 
     override fun subscribeOnPositionChange(eventListener: AudioEventListener) {
         val updater = updaterFactory.create(getCurrentMedia(), ::onCompositionEnd)
-        listeners[getCurrentMedia()] = updater
+
+        if (listeners[getCurrentMedia()]?.hasSubscribers() == true) {
+            listeners[getCurrentMedia()]?.subscribeOnUpdates(eventListener)
+        } else {
+            listeners[getCurrentMedia()] = updater
+        }
+
         updater.subscribeOnUpdates(eventListener)
     }
 

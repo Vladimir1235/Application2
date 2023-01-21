@@ -79,7 +79,9 @@ class AudioPlaybackServiceImpl @Inject constructor(
     }
 
     override fun unregisterAudioEventListener(listener: AudioEventListener) {
-        player.unsubscribeOnPositionChange(listener)
+        executor.executeBlocking {
+            player.unsubscribeOnPositionChange(listener)
+        }
     }
 
     override fun registerStateListener(listener: AudioServiceStateListener?) {
@@ -115,9 +117,7 @@ class AudioPlaybackServiceImpl @Inject constructor(
         .build()
 
     private fun updateCurrentPosition(listener: AudioEventListener) {
-        CoroutineScope(Dispatchers.IO).launch {
-            player.subscribeOnPositionChange(listener)
-            player.requestPositionUpdates()
-        }
+        player.subscribeOnPositionChange(listener)
+        player.requestPositionUpdates()
     }
 }

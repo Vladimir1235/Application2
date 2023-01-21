@@ -7,6 +7,7 @@ import dagger.assisted.AssistedInject
 import dev.vvasiliev.audio.AudioEventListener
 import dev.vvasiliev.audio.service.util.player.ServiceSpecificThreadExecutor
 import kotlinx.coroutines.*
+import timber.log.Timber
 import kotlin.reflect.KFunction
 
 private const val UPDATE_INTERVAL = 150L
@@ -58,8 +59,25 @@ class PlayerProgressUpdate @AssistedInject constructor(
         }
     }
 
+    fun hasSubscribers() = listeners.keys.size > 0
+
     private fun unsubscribeAll() {
-        listeners.keys.forEach(::unsubscribeOnUpdates)
+        val array = listeners.keys.toTypedArray()
+        /**
+         * Why you should not ever use forEach and for(i in variable: Type)
+         * cause if you'll try modify variable while iterating it'll fuck up ([ConcurrentModificationException])
+         * Use usual for loop instead
+         *
+         * Don't use List, Set and subtypes as well.
+         * You continuously moving through collection deleting elements and it's size decreases,
+         * as you getting size of collection at start of loop, it contains initial size for example 10,
+         * at 6th iteration size will be 5 (as you already deleted 5 elements)
+         * as result you trying to access list[5] and get [IndexOutOfBoundsException]
+         * Use array instead
+         */
+        for (index in 0 until listeners.keys.size) {
+            unsubscribeOnUpdates(array[index])
+        }
         rootScope.cancel()
     }
 
