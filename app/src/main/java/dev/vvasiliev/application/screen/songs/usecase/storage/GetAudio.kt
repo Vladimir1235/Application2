@@ -1,4 +1,4 @@
-package dev.vvasiliev.application.screen.songs.usecase
+package dev.vvasiliev.application.screen.songs.usecase.storage
 
 import dev.vvasiliev.application.screen.songs.mapper.MapMusicCardData
 import dev.vvasiliev.structures.android.AudioFileCollection

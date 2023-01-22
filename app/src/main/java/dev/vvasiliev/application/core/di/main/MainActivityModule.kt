@@ -5,7 +5,7 @@ import dagger.Module
 import dagger.Provides
 import dev.vvasiliev.application.core.config.AppConfiguration
 import dev.vvasiliev.application.core.di.scope.MainActivityScope
-import dev.vvasiliev.application.screen.songs.usecase.*
+import dev.vvasiliev.application.screen.songs.usecase.storage.*
 import dev.vvasiliev.structures.android.AudioFileCollection
 import dev.vvasiliev.structures.android.UriCollection
 

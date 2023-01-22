@@ -1,10 +1,8 @@
-package dev.vvasiliev.application.screen.songs.usecase
+package dev.vvasiliev.application.screen.songs.usecase.storage
 
-import android.content.Context
 import android.database.ContentObserver
 import android.net.Uri
 import dev.vvasiliev.structures.android.operation.ContentDeletionLauncher
-import dev.vvasiliev.structures.android.operation.RequestMediaManagementPermissionLauncher
 import dev.vvasiliev.view.composable.modular.music.data.MusicCardData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

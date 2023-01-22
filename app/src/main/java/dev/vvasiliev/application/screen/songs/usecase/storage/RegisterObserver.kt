@@ -1,4 +1,4 @@
-package dev.vvasiliev.application.screen.songs.usecase
+package dev.vvasiliev.application.screen.songs.usecase.storage
 
 import android.database.ContentObserver
 import dev.vvasiliev.structures.android.AudioFileCollection

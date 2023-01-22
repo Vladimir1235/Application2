@@ -1,4 +1,4 @@
-package dev.vvasiliev.application.screen.songs.usecase
+package dev.vvasiliev.application.screen.songs.usecase.storage
 
 import android.content.Context
 import android.net.Uri
