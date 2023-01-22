@@ -28,9 +28,10 @@ class MainActivityModule {
         getAudio: GetAudio,
         shareAudio: ShareAudio,
         registerObserver: RegisterObserver,
-        deleteAudio: DeleteAudio
+        deleteAudio: DeleteAudio,
+        updateSong: UpdateSong
     ) =
-        Audio(getAudio, deleteAudio, shareAudio, registerObserver)
+        Audio(getAudio, deleteAudio, shareAudio, registerObserver, updateSong)
 
     @Provides
     @MainActivityScope

@@ -3,9 +3,7 @@ package dev.vvasiliev.application.core.config
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.content.res.Configuration
-import androidx.core.content.OnConfigurationChangedProvider
 import androidx.core.util.Consumer
 import dev.vvasiliev.audio.service.AudioPlaybackService
 import dev.vvasiliev.audio.service.event.PlaybackStarted
@@ -14,10 +12,9 @@ import dev.vvasiliev.audio.service.state.AudioServiceState
 import dev.vvasiliev.audio.service.state.AudioServiceStateListener
 import dev.vvasiliev.audio.service.state.holder.ServiceEventPipeline
 import dev.vvasiliev.audio.service.util.AudioServiceConnector
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import timber.log.Timber
-import java.util.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class AppConfigurator @Inject constructor(
@@ -32,7 +29,6 @@ class AppConfigurator @Inject constructor(
 
     private val listener = AudioServiceStateListener(object : ServiceEventPipeline {
         override fun onPlaybackStopped(songId: Long) {
-            Timber.d("Playback stopped")
             CoroutineScope(Dispatchers.Main).launch {
                 configuration.servicePlaybackStatus.emit(
                     PlaybackStopped(songId)
@@ -41,7 +37,6 @@ class AppConfigurator @Inject constructor(
         }
 
         override fun onPlaybackStarted(songId: Long) {
-            Timber.d("Playback started")
             CoroutineScope(Dispatchers.Main).launch {
                 configuration.servicePlaybackStatus.emit(
                     PlaybackStarted(songId)

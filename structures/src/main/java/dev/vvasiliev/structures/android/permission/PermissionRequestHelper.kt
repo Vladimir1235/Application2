@@ -15,8 +15,8 @@ abstract class PermissionRequestHelper constructor(private val permissions: Arra
 
     var continuation: CancellableContinuation<Boolean>? = null
 
-    var launcher: WeakReference<ActivityResultLauncher<Array<String>>?> =
-        WeakReference(null)
+    var launcher: ActivityResultLauncher<Array<String>>? =
+        null
 
 
     suspend fun requestPermission(
@@ -25,7 +25,7 @@ abstract class PermissionRequestHelper constructor(private val permissions: Arra
         this.continuation = it
         if (!context.checkPermission())
             launcher.let {
-                it.get()?.launch(permissions)
+                it?.launch(permissions)
             }
         else continuation?.resumeWith(Result.success(true))
     }
@@ -36,12 +36,11 @@ abstract class PermissionRequestHelper constructor(private val permissions: Arra
     fun create(
         activity: ComponentActivity
     ) {
-        launcher = WeakReference(
+        launcher =
             activity.registerForActivityResult(
                 ActivityResultContracts.RequestMultiplePermissions(),
                 this@PermissionRequestHelper
             )
-        )
     }
 
     override fun onActivityResult(result: Map<String, Boolean>?) {

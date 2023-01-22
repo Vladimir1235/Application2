@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.vvasiliev.view.composable.modular.music.data.MusicCardData
@@ -41,12 +42,31 @@ fun MusicCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
+                        modifier = Modifier.weight(0.8f),
                         text = data.title,
-                        style = MaterialTheme.typography.titleMedium
-                    ); menuItems?.let { MusicDropDownMenu(items = it) }
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    menuItems?.let {
+                        MusicDropDownMenu(
+                            modifier = Modifier.size(52.dp).weight(0.1f),
+                            items = it
+                        )
+                    }
                 }
-                Text(text = data.author, style = MaterialTheme.typography.bodyMedium)
-                Text(text = data.album, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = data.author,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = data.album,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall
+                )
 
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {

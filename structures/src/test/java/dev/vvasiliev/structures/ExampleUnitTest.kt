@@ -4,6 +4,7 @@ import dev.vvasiliev.structures.sort.MergeSort
 import kotlinx.coroutines.*
 import org.junit.Assert.*
 import org.junit.Test
+import java.util.TreeSet
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
@@ -67,16 +68,15 @@ class ExampleUnitTest {
 
     @Test
     fun main() {
-        val key1 = "one"
-        var key2 = "two"
-        val map: HashMap<String, Point> = hashMapOf(
-            Pair(key1, Point(0, 0)),
-            Pair(key2, Point(0, 0)),
-            Pair("three", Point(0, 0)),
-            Pair("four", Point(0, 0)),
-            Pair("five", Point(0, 0))
-        )
-        println(map)
+//        val key1 = "one"
+//        var key2 = "two"
+//        val map: HashMap<String, Point> = hashMapOf(
+//            Pair(key1, Point(0, 0)),
+//            Pair(key2, Point(0, 0)),
+//            Pair("three", Point(0, 0)),
+//            Pair("four", Point(0, 0)),
+//            Pair("five", Point(0, 0))
+//        )
     }
 
     @Test

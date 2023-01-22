@@ -13,7 +13,7 @@ import androidx.compose.ui.window.PopupProperties
 @Composable
 fun MusicDropDownMenu(items: MusicDropDownItems, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
-    Box (modifier = modifier){
+    Box(modifier = modifier) {
         IconButton(onClick = { expanded = !expanded }) {
             Icon(imageVector = Icons.Default.Menu, contentDescription = "menuIcon")
         }
@@ -31,10 +31,15 @@ fun MusicDropDownMenu(items: MusicDropDownItems, modifier: Modifier = Modifier) 
 }
 
 sealed class MusicDropDownItems {
+    @Immutable
     class MusicCardDropDownItems(
+        @Stable
         private val onShareItemClick: () -> Unit = {},
+        @Stable
         private val onDeleteItemClick: () -> Unit = {},
+        @Stable
         private val onInfoItemClick: () -> Unit = {},
+        @Stable
         private val onRenameItemClicked: () -> Unit = {}
     ) : MusicDropDownItems() {
         @Composable

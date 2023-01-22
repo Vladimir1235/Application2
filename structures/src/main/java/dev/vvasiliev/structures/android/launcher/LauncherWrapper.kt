@@ -21,7 +21,6 @@ interface LauncherWrapper<InputType, ResultType> :
     fun buildResult(result: ResultType): Result<Boolean>
 
     suspend fun launch(
-        context: Context,
         input: InputType
     ): Boolean = suspendCancellableCoroutine {
         this.continuation = it

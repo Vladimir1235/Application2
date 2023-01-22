@@ -8,8 +8,8 @@ import dev.vvasiliev.view.composable.modular.music.mapper.CardElementsMapper
 
 
 @Immutable
-class MusicCardData(
-    isPlaying: Boolean = false,
+data class MusicCardData(
+    val isPlaying: Boolean = false,
     private val _status: MutableState<Boolean> = mutableStateOf(isPlaying),
     private val _position: MutableState<Float> = mutableStateOf(0f),
     val playing: State<Boolean> = _status,
@@ -53,9 +53,9 @@ class MusicCardData(
     companion object {
         fun mock() = MusicCardData(
             false,
-            title = "SongTitle",
-            author = "Author Name",
-            album = "Album title",
+            title = "SongTitle12387999999999999999999999999999999999999999999999999999999999999",
+            author = "Author Nadsajhkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkme",
+            album = "Album titledaslkjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj",
             duration = 14880,
             uri = Uri.EMPTY,
             id = 0
