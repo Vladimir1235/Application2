@@ -1,5 +1,6 @@
 package dev.vvasiliev.audio.service.util.player.updater
 
+import android.os.DeadObjectException
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import dagger.assisted.Assisted
@@ -94,6 +95,8 @@ class PlayerProgressUpdate @AssistedInject constructor(
                     })
                 } catch (illegalState: IllegalStateException) {
                     illegalState.printStackTrace()
+                } catch (deadObject: DeadObjectException) {
+                    unsubscribeOnUpdates(listener.first)
                 }
                 delay(UPDATE_INTERVAL)
             }

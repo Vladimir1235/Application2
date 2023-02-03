@@ -30,7 +30,10 @@ class MainActivity : ComponentActivity() {
         ReadStoragePermissionLauncher.create(this)
         NotificationPermissionLauncher.create(this)
         WriteStoragePermission.create(this)
-        ContentEditionRequestLauncher.create(this, ActivityResultContracts.StartIntentSenderForResult())
+        ContentEditionRequestLauncher.create(
+            this,
+            ActivityResultContracts.StartIntentSenderForResult()
+        )
         ContentDeletionLauncher.create(this, ActivityResultContracts.StartIntentSenderForResult())
         ShareContentLauncher.create(this, ShareFileContract())
     }
@@ -55,6 +58,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        configurator.stopMusicService()
+        super.onDestroy()
     }
 }
 

@@ -60,11 +60,8 @@ class AudioNotificationManager @Inject constructor(
                 PendingIntent.getActivity(
                     context,
                     0,
-                    Intent(context, Class.forName("dev.vvasiliev.application.MainActivity")).also {
-                        it.action = "android.intent.action.MAIN"
-                        it.data = Uri.parse("app://dev.vvasiliev.application")
-                    },
-                    PendingIntent.FLAG_IMMUTABLE,
+                    Intent(context, Class.forName("dev.vvasiliev.application.MainActivity")),
+                    FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                     null
                 )
             )

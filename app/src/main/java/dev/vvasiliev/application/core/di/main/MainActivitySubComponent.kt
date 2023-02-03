@@ -4,13 +4,11 @@ import androidx.navigation.NavHostController
 import dagger.BindsInstance
 import dagger.Subcomponent
 import dev.vvasiliev.application.MainActivity
-import dev.vvasiliev.application.core.di.core.CoreModule
 import dev.vvasiliev.application.core.di.scope.MainActivityScope
 import dev.vvasiliev.application.core.di.viewmodel.ViewModelInjection
 
 @Subcomponent(
-    modules = [CoreModule::class,
-        MainActivityModule::class,
+    modules = [MainActivityModule::class,
         MainBindsModule::class]
 )
 @MainActivityScope

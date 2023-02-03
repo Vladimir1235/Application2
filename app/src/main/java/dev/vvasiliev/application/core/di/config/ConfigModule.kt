@@ -9,6 +9,7 @@ import dev.vvasiliev.application.core.config.ApplicationConfiguration
 import dev.vvasiliev.application.core.di.core.CoreModule
 import dev.vvasiliev.audio.service.state.AudioServiceState
 import dev.vvasiliev.audio.service.util.AudioServiceConnector
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Singleton
 
@@ -30,5 +31,5 @@ class ConfigModule {
         configuration: AppConfiguration,
         serviceConnector: AudioServiceConnector
     ): AppConfigurator =
-        AppConfigurator(context, configuration, serviceConnector)
+        AppConfigurator(context, configuration, serviceConnector, Dispatchers.Main)
 }

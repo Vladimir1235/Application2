@@ -9,6 +9,9 @@ import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.AudioPlaybackService
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import timber.log.Timber
 import java.lang.ref.WeakReference
 
 /**
@@ -16,7 +19,10 @@ import java.lang.ref.WeakReference
  */
 class AudioServiceConnector constructor(private val context: Context) : ServiceConnection {
     var connected: Boolean = false
-    private var serviceRef: WeakReference<IAudioPlaybackService?> = WeakReference(null)
+    private val mutex = Mutex()
+
+    @Volatile
+    private var serviceRef: IAudioPlaybackService? = null
 
     /**
      * [CancellableContinuation] which falls current thread into a sleep till [IAudioPlaybackService] will be available
@@ -24,10 +30,9 @@ class AudioServiceConnector constructor(private val context: Context) : ServiceC
     private var continuation: CancellableContinuation<IAudioPlaybackService>? = null
 
     override fun onServiceConnected(componentName: ComponentName?, binder: IBinder?) {
-        connected = true
         val service = IAudioPlaybackService.Stub.asInterface(binder)
         continuation?.resumeWith(Result.success(service))
-        serviceRef = WeakReference(service)
+        serviceRef = service
         this.continuation = null
     }
 
@@ -45,7 +50,7 @@ class AudioServiceConnector constructor(private val context: Context) : ServiceC
     override fun onBindingDied(name: ComponentName?) {
         super.onBindingDied(name)
         connected = false
-        serviceRef.clear()
+        serviceRef = null
     }
 
     /**
@@ -54,7 +59,7 @@ class AudioServiceConnector constructor(private val context: Context) : ServiceC
     override fun onNullBinding(name: ComponentName?) {
         super.onNullBinding(name)
         connected = false
-        serviceRef.clear()
+        serviceRef = null
     }
 
     /**
@@ -62,13 +67,15 @@ class AudioServiceConnector constructor(private val context: Context) : ServiceC
      * @param context used to build an intent which specifies desired service
      */
     suspend fun getService() =
-        if (serviceRef.get() != null) serviceRef.get()!! else
-            suspendCancellableCoroutine { continuation ->
-                this.continuation = continuation
-                context.bindService(
-                    Intent(context, AudioPlaybackService::class.java),
-                    this,
-                    Context.BIND_AUTO_CREATE
-                )
-            }
+        mutex.withLock {
+            if (serviceRef != null) serviceRef!! else
+                suspendCancellableCoroutine { continuation ->
+                    this.continuation = continuation
+                    this.connected = context.bindService(
+                        Intent(context, AudioPlaybackService::class.java),
+                        this,
+                        Context.BIND_AUTO_CREATE
+                    )
+                }
+        }
 }

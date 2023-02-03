@@ -13,7 +13,7 @@ import javax.inject.Singleton
 @Module
 class CoreModule {
     @Provides
-    @Reusable
+    @Singleton
     fun provideServiceConnector(context: Context) =
         AudioServiceConnector(context)
 }
