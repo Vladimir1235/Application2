@@ -8,7 +8,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.lang.ref.WeakReference
 
 abstract class PermissionRequestHelper constructor(private val permissions: Array<String>) :
     ActivityResultCallback<Map<String, Boolean>> {

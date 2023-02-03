@@ -1,6 +1,8 @@
 package dev.vvasiliev.audio.service
 
 import android.media.session.PlaybackState
+import android.os.DeadObjectException
+import android.os.RemoteException
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.MediaMetadata
 import dev.vvasiliev.audio.AudioEventListener
@@ -86,20 +88,29 @@ class AudioPlaybackServiceImpl @Inject constructor(
 
     override fun registerStateListener(listener: AudioServiceStateListener?) {
         this.listener = listener
-        val aListener = this.listener
         CoroutineScope(Dispatchers.IO).launch {
             state.getFlow().collect { serviceStateEvent ->
-                when (serviceStateEvent) {
-                    is ServiceStateChanged -> {
-                        aListener?.onAudioServiceStateChanged(serviceStateEvent.serviceState)
+                try {
+                    val aListener = this@AudioPlaybackServiceImpl.listener
+                    when (serviceStateEvent) {
+                        is ServiceStateChanged -> {
+                            aListener?.onAudioServiceStateChanged(serviceStateEvent.serviceState)
+                        }
+                        is PlaybackStarted -> {
+                            aListener?.onPlaybackStarted(serviceStateEvent.songId)
+                        }
+                        is PlaybackStopped -> {
+                            aListener?.onPlaybackStopped(serviceStateEvent.songId)
+                        }
                     }
-                    is PlaybackStarted -> {
-                        aListener?.onPlaybackStarted(serviceStateEvent.songId)
-                    }
-                    is PlaybackStopped -> {
-                        aListener?.onPlaybackStopped(serviceStateEvent.songId)
+                } catch (exception: RemoteException) {
+                    when (exception) {
+                        is DeadObjectException -> {
+                            this@AudioPlaybackServiceImpl.listener = null
+                        }
                     }
                 }
+
             }
         }
     }

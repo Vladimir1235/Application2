@@ -29,8 +29,11 @@
             android:theme="@style/Theme.Application">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN>"/>
+                <data android:host="dev.vvasiliev.application" android:scheme="app"/>
             </intent-filter>
 
             <meta-data

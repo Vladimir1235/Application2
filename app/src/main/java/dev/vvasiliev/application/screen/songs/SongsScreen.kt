@@ -10,8 +10,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import dev.vvasiliev.view.composable.modular.dialog.*
+import dev.vvasiliev.view.composable.modular.dialog.DialogData
+import dev.vvasiliev.view.composable.modular.dialog.InformationDialog
+import dev.vvasiliev.view.composable.modular.dialog.MusicEditTextDialog
+import dev.vvasiliev.view.composable.modular.dialog.OptionDialog
 import dev.vvasiliev.view.composable.modular.music.MusicCard
 import dev.vvasiliev.view.composable.modular.music.MusicDropDownItems
 

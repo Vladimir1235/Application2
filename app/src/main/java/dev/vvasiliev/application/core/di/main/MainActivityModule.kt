@@ -5,7 +5,9 @@ import dagger.Module
 import dagger.Provides
 import dev.vvasiliev.application.core.config.AppConfiguration
 import dev.vvasiliev.application.core.di.scope.MainActivityScope
+import dev.vvasiliev.application.screen.songs.usecase.Audio
 import dev.vvasiliev.application.screen.songs.usecase.storage.*
+import dev.vvasiliev.audio.service.util.AudioServiceConnector
 import dev.vvasiliev.structures.android.AudioFileCollection
 import dev.vvasiliev.structures.android.UriCollection
 
@@ -29,9 +31,19 @@ class MainActivityModule {
         shareAudio: ShareAudio,
         registerObserver: RegisterObserver,
         deleteAudio: DeleteAudio,
-        updateSong: UpdateSong
+        updateSong: UpdateSong,
+        serviceAssistFactory: ServiceAssistFactory,
+        serviceConnector: AudioServiceConnector
     ) =
-        Audio(getAudio, deleteAudio, shareAudio, registerObserver, updateSong)
+        Audio(
+            getAudio,
+            deleteAudio,
+            shareAudio,
+            registerObserver,
+            updateSong,
+            serviceAssistFactory,
+            serviceConnector
+        )
 
     @Provides
     @MainActivityScope

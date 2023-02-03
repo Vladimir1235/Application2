@@ -14,11 +14,9 @@ import com.example.compose.AppTheme
 import dev.vvasiliev.application.core.app.MyPlayerApp
 import dev.vvasiliev.application.core.config.AppConfigurator
 import dev.vvasiliev.application.screen.navigation.Navigator
-import dev.vvasiliev.structures.android.launcher.contract.GetManageMediaPermissionContract
 import dev.vvasiliev.structures.android.launcher.contract.ShareFileContract
 import dev.vvasiliev.structures.android.operation.ContentDeletionLauncher
 import dev.vvasiliev.structures.android.operation.ContentEditionRequestLauncher
-import dev.vvasiliev.structures.android.operation.RequestMediaManagementPermissionLauncher
 import dev.vvasiliev.structures.android.operation.ShareContentLauncher
 import dev.vvasiliev.structures.android.permission.NotificationPermissionLauncher
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
@@ -32,10 +30,7 @@ class MainActivity : ComponentActivity() {
         ReadStoragePermissionLauncher.create(this)
         NotificationPermissionLauncher.create(this)
         WriteStoragePermission.create(this)
-        ContentEditionRequestLauncher.create(
-            this,
-            ActivityResultContracts.StartIntentSenderForResult()
-        )
+        ContentEditionRequestLauncher.create(this, ActivityResultContracts.StartIntentSenderForResult())
         ContentDeletionLauncher.create(this, ActivityResultContracts.StartIntentSenderForResult())
         ShareContentLauncher.create(this, ShareFileContract())
     }

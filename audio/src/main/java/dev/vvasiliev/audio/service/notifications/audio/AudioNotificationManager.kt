@@ -2,15 +2,15 @@ package dev.vvasiliev.audio.service.notifications.audio
 
 import android.app.Notification
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_ONE_SHOT
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Context
-import android.widget.RemoteViews
+import android.content.Intent
+import android.net.Uri
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationCompat.FLAG_NO_CLEAR
 import androidx.core.app.NotificationCompat.FLAG_ONGOING_EVENT
 import com.google.android.exoplayer2.MediaMetadata
-import dev.vvasiliev.audio.BuildConfig
-import dev.vvasiliev.audio.R
-import dev.vvasiliev.audio.service.broadcast.NotificationBroadcastReceiver
 import dev.vvasiliev.audio.service.broadcast.NotificationIntent
 import dev.vvasiliev.audio.service.notifications.NotificationUtils.CHANNEL_ID
 import dev.vvasiliev.audio.service.notifications.NotificationUtils.FOREGROUND_CHANNEL_ID
@@ -52,9 +52,21 @@ class AudioNotificationManager @Inject constructor(
             ) // #1
             // Apply the media style template
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
-            .setSmallIcon(com.google.android.exoplayer2.ui.R.drawable.exo_notification_small_icon)
+            .setSmallIcon(android.R.drawable.ic_media_play)
             .setCustomContentView(
                 remoteView
+            )
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    context,
+                    0,
+                    Intent(context, Class.forName("dev.vvasiliev.application.MainActivity")).also {
+                        it.action = "android.intent.action.MAIN"
+                        it.data = Uri.parse("app://dev.vvasiliev.application")
+                    },
+                    PendingIntent.FLAG_IMMUTABLE,
+                    null
+                )
             )
             .build().apply {
                 flags = FLAG_ONGOING_EVENT

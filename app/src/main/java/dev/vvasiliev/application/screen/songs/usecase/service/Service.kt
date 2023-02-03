@@ -1,13 +1,13 @@
 package dev.vvasiliev.application.screen.songs.usecase.service
 
-import dev.vvasiliev.application.exception.ServiceNotBoundException
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import dev.vvasiliev.audio.IAudioPlaybackService
 import dev.vvasiliev.audio.service.data.EventListener
 import dev.vvasiliev.audio.service.data.SongMetadata
 import dev.vvasiliev.view.composable.modular.music.data.MusicCardData
-import javax.inject.Inject
 
-class Service constructor(private val service: IAudioPlaybackService) {
+class Service @AssistedInject constructor(@Assisted private val service: IAudioPlaybackService) {
     fun play(musicCardData: MusicCardData) {
         with(musicCardData) {
             val startingPosition = calculateSeekToValue(position.value)

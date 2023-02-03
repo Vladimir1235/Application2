@@ -9,14 +9,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import dev.vvasiliev.application.exception.ServiceException
 import dev.vvasiliev.application.screen.songs.mapper.DialogMapper
-import dev.vvasiliev.application.screen.songs.usecase.service.Service
-import dev.vvasiliev.application.screen.songs.usecase.storage.Audio
+import dev.vvasiliev.application.screen.songs.usecase.Audio
 import dev.vvasiliev.application.screen.songs.usecase.storage.ContentUpdateListener
 import dev.vvasiliev.audio.service.event.PlaybackStarted
 import dev.vvasiliev.audio.service.event.PlaybackStopped
 import dev.vvasiliev.audio.service.event.ServiceStateEvent
 import dev.vvasiliev.audio.service.state.AudioServiceState
-import dev.vvasiliev.audio.service.util.AudioServiceConnector
 import dev.vvasiliev.structures.android.permission.NotificationPermissionLauncher
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
 import dev.vvasiliev.structures.android.permission.WriteStoragePermission
@@ -30,7 +28,6 @@ import javax.inject.Inject
 
 class SongsViewModel
 @Inject constructor(
-    private val serviceConnector: AudioServiceConnector,
     private val audio: Audio,
     private val navHostController: NavHostController,
     private val dialogMapper: DialogMapper,
@@ -45,13 +42,9 @@ class SongsViewModel
     val serviceStatus: StateFlow<AudioServiceState> = _serviceStatus
     val dialogState: MutableState<DialogData?> = mutableStateOf(null)
 
-    lateinit var service: Service
-
     fun onCreate() {
-
         viewModelScope.launch {
             if (ReadStoragePermissionLauncher.requestPermission(navHostController.context)) {
-                service = Service(serviceConnector.getService())
                 fetchSongs()
                 audio.registerContentObserver(ContentUpdateListener {
                     fetchSongsAsync()
@@ -74,19 +67,19 @@ class SongsViewModel
         try {
             when (event) {
                 is SongScreenEvent.PlayEvent -> {
-                    service.play(event.musicCardData)
+                    audio.play(event.musicCardData)
                 }
 
                 is SongScreenEvent.StopEvent -> {
-                    service.stop()
+                    audio.stop()
                 }
 
                 is SongScreenEvent.PositionChanged -> {
-                    service.onChangePosition(event.musicCardData, position = event.position)
+                    audio.onChangePosition(event.musicCardData, position = event.position)
                 }
 
                 is SongScreenEvent.DeleteAudioItem -> {
-                    service.stop()
+                    audio.stop()
                     audio.remove(event.uri, viewModelScope)
                 }
 
@@ -146,7 +139,7 @@ class SongsViewModel
                         cardData.id == event.songId
                     }?.let { data ->
                         data.setPlayingStatus(true)
-                        service.registerAudioEventListener(data)
+                        audio.registerAudioEventListener(data)
                     }
                 }
             }

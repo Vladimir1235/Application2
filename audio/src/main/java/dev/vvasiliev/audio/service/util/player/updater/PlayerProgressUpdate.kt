@@ -7,8 +7,6 @@ import dagger.assisted.AssistedInject
 import dev.vvasiliev.audio.AudioEventListener
 import dev.vvasiliev.audio.service.util.player.ServiceSpecificThreadExecutor
 import kotlinx.coroutines.*
-import timber.log.Timber
-import kotlin.reflect.KFunction
 
 private const val UPDATE_INTERVAL = 150L
 
@@ -84,15 +82,19 @@ class PlayerProgressUpdate @AssistedInject constructor(
     private fun startUpdates(listener: Pair<AudioEventListener, Job>) {
         CoroutineScope(rootScope + listener.second).launch {
             while (true) {
-                listener.first.onPositionChange(executor.executeBlocking {
-                    val position = player.currentPosition;
+                try {
+                    listener.first.onPositionChange(executor.executeBlocking {
+                        val position = player.currentPosition;
 
-                    player.ifEnded(position) {
-                        onCompositionEnd()
-                    }
+                        player.ifEnded(position) {
+                            onCompositionEnd()
+                        }
 
-                    position
-                })
+                        position
+                    })
+                } catch (illegalState: IllegalStateException) {
+                    illegalState.printStackTrace()
+                }
                 delay(UPDATE_INTERVAL)
             }
         }
