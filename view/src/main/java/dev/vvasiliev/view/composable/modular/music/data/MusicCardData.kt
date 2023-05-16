@@ -25,7 +25,11 @@ data class MusicCardData(
     @Stable
     val uri: Uri,
     @Stable
-    val id: Long
+    val id: Long,
+    @Stable
+    val playTitle: String,
+    @Stable
+    val stopTitle: String
 ) {
     fun setPlayingStatus(state: Boolean) {
         _status.value = state
@@ -58,7 +62,9 @@ data class MusicCardData(
             album = "Album titledaslkjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj",
             duration = 14880,
             uri = Uri.EMPTY,
-            id = 0
+            id = 0,
+            playTitle = "play",
+            stopTitle = "stop"
         )
     }
 }

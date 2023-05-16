@@ -1,3 +1,27 @@
 <resources>
     <string name="app_name">My player</string>
+    <string name="service_status">Service status: %1$s</string>
+    <!-- Music card button -->
+    <string name="play_btn_title">Play</string>
+    <string name="stop_btn_title">Stop</string>
+    <!-- Song info dialog -->
+    <string name="info_dialog_title">Track info</string>
+    <string name="info_dialog_track_title">Title: %1$s</string>
+    <string name="info_dialog_track_author">Author: %1$s</string>
+    <string name="info_dialog_track_location">Location: %1$s</string>
+    <string name="info_dialog_track_duration">Duration: %1$d ms</string>
+    <string name="info_dialog_confirm_btn_title">Confirm</string>
+    <string name="info_dialog_reject_btn_title">Reject</string>
+
+    <!-- Song info edition dialog -->
+    <string name="edit_dialog_edit_title_label">Title</string>
+    <string name="edit_dialog_edit_author_label">Author</string>
+    <string name="edit_dialog_edit_album_label">Album</string>
+    <string name="edit_dialog_edit_confirm_btn">Confirm</string>
+
+    <!-- Option DropDown -->
+    <string name="drop_down_edit_title">Edit</string>
+    <string name="drop_down_info_title">Info</string>
+    <string name="drop_down_share_title">Share</string>
+    <string name="drop_down_delete_title">Delete</string>
 </resources>

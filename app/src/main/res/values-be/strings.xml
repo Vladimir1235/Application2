@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="service_status">Статус сервіса: %1$s</string>
+    <string name="play_btn_title">Плей</string>
+    <string name="stop_btn_title">Спыніць</string>
+    <string name="info_dialog_title">Інфармацыя пра трэк</string>
+    <string name="info_dialog_track_title">"Назва: %1$s"</string>
+    <string name="info_dialog_track_author">"Аўтар: %1$s"</string>
+    <string name="info_dialog_track_location">"Знаходзіцца: %1$s"</string>
+    <string name="info_dialog_track_duration">"Працягваецца: %1$d мс"</string>
+    <string name="info_dialog_confirm_btn_title">Так</string>
+    <string name="info_dialog_reject_btn_title">Не</string>
+
+    <string name="edit_dialog_edit_title_label">Назва</string>
+    <string name="edit_dialog_edit_author_label">Аўтар</string>
+    <string name="edit_dialog_edit_album_label">Альбом</string>
+    <string name="edit_dialog_edit_confirm_btn">Так</string>
+
+    <string name="drop_down_edit_title">Рэдагаваць</string>
+    <string name="drop_down_info_title">Інфармацыя</string>
+    <string name="drop_down_share_title">Шэйр</string>
+    <string name="drop_down_delete_title">Выдаліць</string>
+</resources>

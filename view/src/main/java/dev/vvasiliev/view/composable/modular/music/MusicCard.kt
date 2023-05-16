@@ -50,7 +50,9 @@ fun MusicCard(
                     )
                     menuItems?.let {
                         MusicDropDownMenu(
-                            modifier = Modifier.size(52.dp).weight(0.1f),
+                            modifier = Modifier
+                                .size(52.dp)
+                                .weight(0.1f),
                             items = it
                         )
                     }
@@ -77,7 +79,7 @@ fun MusicCard(
                             },
                             modifier = Modifier.padding(start = 8.dp)
                         ) {
-                            Text(text = if (isPlaying) "Stop" else "Play")
+                            Text(text = if (isPlaying) data.stopTitle else data.playTitle)
                         }
                         Box {
                             Text(
@@ -113,6 +115,6 @@ fun MusicCardPreview() {
         data = data,
         onStateChanged = data::setPlayingStatus,
         onPositionChanged = data::setPlayingPosition,
-        menuItems = MusicDropDownItems.MusicCardDropDownItems()
+        menuItems = MusicDropDownItems.MusicCardDropDownItems("", "", "", "")
     )
 }

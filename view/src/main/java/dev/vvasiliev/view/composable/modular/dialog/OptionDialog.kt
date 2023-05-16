@@ -66,7 +66,7 @@ fun MusicEditTextDialog(dialogData: DialogData.MusicEditTextDialogData) {
                     title = it
                 }, label = {
                     Text(
-                        text = "Song Title"
+                        text = dialogData.titleLabel
                     )
                 })
                 Spacer(modifier = Modifier.height(8.dp))
@@ -74,7 +74,7 @@ fun MusicEditTextDialog(dialogData: DialogData.MusicEditTextDialogData) {
                     author = it
                 }, label = {
                     Text(
-                        text = "Song Author"
+                        text = dialogData.authorLabel
                     )
                 })
                 Spacer(modifier = Modifier.height(8.dp))
@@ -82,7 +82,7 @@ fun MusicEditTextDialog(dialogData: DialogData.MusicEditTextDialogData) {
                     album = it
                 }, label = {
                     Text(
-                        text = "Song Album"
+                        text = dialogData.albumLabel
                     )
                 })
                 Spacer(modifier = Modifier.height(8.dp))
@@ -175,10 +175,19 @@ sealed class DialogData(
         confirmText: String,
         val confirmData: (title: String, album: String, author: String) -> Unit,
         onCancel: () -> Unit,
+
+        @Stable
+        val titleLabel: String,
         @Stable
         val songTitle: String,
+
+        @Stable
+        val authorLabel: String,
         @Stable
         val songAuthor: String,
+
+        @Stable
+        val albumLabel: String,
         @Stable
         val songAlbum: String
     ) : DialogData(title, info, confirmText, confirm = {}, onCancel)

@@ -42,34 +42,7 @@ fun SongsScreen(viewModel: SongsViewModel) {
     ) {
         item { Text(text = "Service Status: $serviceStatus") }
         items(count = music.size) { index ->
-            with(music[index]) {
-                MusicCard(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    data = this,
-                    onClick = { viewModel.onEvent(SongScreenEvent.CardClickEvent(uri)) },
-                    onStateChanged = { status ->
-                        viewModel.onEvent(
-                            if (status) SongScreenEvent.PlayEvent(music[index])
-                            else SongScreenEvent.StopEvent()
-                        )
-                    },
-                    onPositionChanged = { position ->
-                        viewModel.onEvent(SongScreenEvent.PositionChanged(music[index], position))
-                    },
-                    menuItems = MusicDropDownItems.MusicCardDropDownItems(onDeleteItemClick = {
-                        viewModel.onEvent(SongScreenEvent.DeleteAudioItem(uri))
-                    }, onShareItemClick = {
-                        viewModel.onEvent(SongScreenEvent.ShareAudioItem(uri))
-                    },
-                        onInfoItemClick = {
-                            viewModel.onEvent(SongScreenEvent.InfoAudioItem(this))
-                        },
-                        onRenameItemClicked = {
-                            viewModel.onEvent(SongScreenEvent.RenameAudioItem(this))
-                        })
-                )
-            }
+            viewModel.getCardComposable(index)?.invoke()
         }
     }
 }

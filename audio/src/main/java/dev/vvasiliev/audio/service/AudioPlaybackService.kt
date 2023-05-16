@@ -66,7 +66,6 @@ class AudioPlaybackService : Service() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         Timber.d("Client Disconnected")
-        unregisterBroadcastReceiver()
         getNotificationManager(this).notify(
             FOREGROUND_CHANNEL_ID + 1,
             buildNotificationActivityUnBind(this)

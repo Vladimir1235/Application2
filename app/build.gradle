@@ -47,23 +47,28 @@ android {
     }
 
     flavorDimensions "country", "payment"
-    productFlavors{
-        BY{
+    productFlavors {
+        Kate {
+            applicationIdSuffix ".kate.by"
+            versionNameSuffix "-kate-by"
+            dimension "payment"
+        }
+        BY {
             applicationIdSuffix ".by"
             versionNameSuffix "-by"
             dimension "country"
         }
-        EU{
+        EU {
             applicationIdSuffix ".eu"
             versionNameSuffix "-eu"
             dimension "country"
         }
-        Paid{
+        Paid {
             applicationIdSuffix ".paid"
             versionNameSuffix "-paid"
             dimension "payment"
         }
-        Free{
+        Free {
             applicationIdSuffix ".free"
             versionNameSuffix "-free"
             dimension "payment"

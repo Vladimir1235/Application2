@@ -34,6 +34,14 @@ sealed class MusicDropDownItems {
     @Immutable
     class MusicCardDropDownItems(
         @Stable
+        private val shareTitle: String,
+        @Stable
+        private val deleteTitle: String,
+        @Stable
+        private val infoTitle: String,
+        @Stable
+        private val renameTitle: String,
+        @Stable
         private val onShareItemClick: () -> Unit = {},
         @Stable
         private val onDeleteItemClick: () -> Unit = {},
@@ -45,19 +53,19 @@ sealed class MusicDropDownItems {
         @Composable
         override fun DropDownItems(onItemClicked: () -> Unit) {
             DropdownMenuItem(
-                text = { Text("Rename") },
+                text = { Text(renameTitle) },
                 onClick = { onRenameItemClicked(); onItemClicked() },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Edit, contentDescription = "rename")
                 })
             DropdownMenuItem(
-                text = { Text("Delete") },
+                text = { Text(deleteTitle) },
                 onClick = { onDeleteItemClick(); onItemClicked() },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Delete, contentDescription = "delete")
                 })
             DropdownMenuItem(
-                text = { Text("Share") },
+                text = { Text(shareTitle) },
                 onClick = { onShareItemClick(); onItemClicked() },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Share, contentDescription = "share")
@@ -65,7 +73,7 @@ sealed class MusicDropDownItems {
             )
             Divider()
             DropdownMenuItem(
-                text = { Text("Info") },
+                text = { Text(infoTitle) },
                 onClick = { onInfoItemClick(); onItemClicked() },
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Info, contentDescription = "info")
@@ -80,5 +88,5 @@ sealed class MusicDropDownItems {
 @Composable
 @Preview
 fun MusicDropDownPreview() {
-    MusicDropDownMenu(MusicDropDownItems.MusicCardDropDownItems())
+    MusicDropDownMenu(MusicDropDownItems.MusicCardDropDownItems("", "", "", ""))
 }

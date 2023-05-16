@@ -7,6 +7,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
@@ -21,7 +24,9 @@ import dev.vvasiliev.structures.android.operation.ShareContentLauncher
 import dev.vvasiliev.structures.android.permission.NotificationPermissionLauncher
 import dev.vvasiliev.structures.android.permission.ReadStoragePermissionLauncher
 import dev.vvasiliev.structures.android.permission.WriteStoragePermission
+import dev.vvasiliev.view.composable.composable.WelcomingScreen
 import dev.vvasiliev.view.composable.splash.screen.SplashScreen
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 class MainActivity : ComponentActivity() {
@@ -46,8 +51,16 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
+            val loading = remember {
+                mutableStateOf(true)
+            }
+            LaunchedEffect(true) {
+                delay(4000)
+                loading.value = false
+            }
+
+            if (loading.value) WelcomingScreen() else
             AppTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     //Inject This activity into dependency graph

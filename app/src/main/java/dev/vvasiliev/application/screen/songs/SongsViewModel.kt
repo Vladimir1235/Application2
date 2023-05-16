@@ -9,6 +9,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import dev.vvasiliev.application.exception.ServiceException
 import dev.vvasiliev.application.screen.songs.mapper.DialogMapper
+import dev.vvasiliev.application.screen.songs.mapper.DropDownMenuMapper
+import dev.vvasiliev.application.screen.songs.mapper.MusicCardMapper
 import dev.vvasiliev.application.screen.songs.usecase.Audio
 import dev.vvasiliev.application.screen.songs.usecase.storage.ContentUpdateListener
 import dev.vvasiliev.audio.service.event.PlaybackStarted
@@ -31,6 +33,8 @@ class SongsViewModel
     private val audio: Audio,
     private val navHostController: NavHostController,
     private val dialogMapper: DialogMapper,
+    private val cardMapper: MusicCardMapper,
+    private val dropDownMenuMapper: DropDownMenuMapper,
     _serviceStatus: MutableStateFlow<AudioServiceState>,
     _playbackStatus: MutableStateFlow<ServiceStateEvent>
 ) : ViewModel() {
@@ -90,15 +94,12 @@ class SongsViewModel
                 }
                 is SongScreenEvent.InfoAudioItem -> {
                     dialogState.value =
-                        dialogMapper.mapInfoDialog(
-                            cardData = event.cardData,
-                            onDismiss = {
-                                dialogState.value = null
-                            })
+                        dialogMapper.mapInfoDialog(cardData = event.cardData, onDismiss = {
+                            dialogState.value = null
+                        })
                 }
                 is SongScreenEvent.RenameAudioItem -> {
-                    dialogState.value = dialogMapper.mapRenameAudioDialog(
-                        cardData = event.cardData,
+                    dialogState.value = dialogMapper.mapRenameAudioDialog(cardData = event.cardData,
                         onComplete = ::updateSong,
                         onDismiss = {
                             dialogState.value = null
@@ -110,17 +111,32 @@ class SongsViewModel
         }
     }
 
+    fun getCardComposable(index: Int) =
+        musicList.value.getOrNull(index)?.let { data ->
+            cardMapper.map(
+                musicCardData = data,
+                onStateChanged = { status ->
+                    onEvent(
+                        if (status) SongScreenEvent.PlayEvent(data)
+                        else SongScreenEvent.StopEvent()
+                    )
+                },
+                onPositionChanged = { position ->
+                    onEvent(SongScreenEvent.PositionChanged(data, position))
+                },
+                dropDownItems = dropDownMenuMapper.map(onEvent = ::onEvent, data)
+            )
+        }
+
+
     private fun updateSong(title: String, album: String, author: String, cardData: MusicCardData) {
         viewModelScope.launch {
             if (WriteStoragePermission.requestPermission(context = navHostController.context)) {
                 val writeInfo = cardData.copy(
-                    title = title,
-                    album = album,
-                    author = author
+                    title = title, album = album, author = author
                 )
                 audio.update(
-                    writeInfo,
-                    viewModelScope
+                    writeInfo, viewModelScope
                 )
             }
         }
